@@ -146,12 +146,12 @@
 # Perform some tasks when the child exits
 [de kv-child-exit ()
   (kv-output "[child]=" *Pid " exiting")
-  (kv-out-sibling "done")        # tell the sibling the child is done
+  (kv-out-sibling "done")                # tell the sibling the child is done
   (when (info *Pipe_child)
-        (call 'rm *Pipe_child) ) # remove the temporary named pipe
-  (wait 1)                       # prevent the child from exiting fast
-  (close *Sock)                  # close the socket when all is done
-  (bye) ]                        # R.I.P.
+        (call 'rm *Pipe_child) )         # remove the temporary named pipe
+  (wait 1)                               # prevent the child from exiting fast
+  (close *Sock)                          # close the socket when all is done
+  (bye) ]                                # R.I.P.
 
 # Receive the initial auth in a child process from the client over a TCP socket
 [de kv-child ()
@@ -164,10 +164,15 @@
         (kv-out-sibling "error" "NOAUTH")# auth NOT OK, tell the sibling
         (kv-out-sock "AUTH" "NOAUTH") ]  # auth NOT OK, tell the client
 
-# Fork another child process known as the 'sibling' which stores all the data
+# Parent process can perform some work
 [de kv-parent ()
-  (when (= (length (kids)) 1)            # we only ever want 1 "sibling"
-        (unless (fork)
+  # noop
+  ]
+
+# Fork another child process known as the 'sibling' which stores all the data
+[de kv-sibling ()
+  (kv-mkfifo "sibling")                  # make a named pipe for the sibling
+  (unless (fork)
           (kv-output "[sibling]=" *Pid)
           (finally
             (kv-sibling-exit)            # sibling exits
@@ -190,13 +195,13 @@
   (kv-output "Parent PID: " *Pid)
 
   (use (*Portsock *Sock *Pipe_sibling *Pipe_child)
-    (setq *Portsock (port *KV_port))       # open a TCP port
+    (setq *Portsock (port *KV_port))     # open a TCP port
     (finally
       (kv-cleanup-kids)
-      (loop                                # loop for new clients
-        (setq *Sock (listen *Portsock))    # listen for TCP connections
-        (kv-mkfifo "sibling")              # make a named pipe for the sibling
-        (if (fork)                         # fork each new client TCP connection
-            (kv-parent)                    # parent process
-            (kv-child)                     # child process
-            (kv-child-exit) ]              # child exits
+      (kv-sibling)                       # sibling process
+      (loop                              # loop for new clients
+        (setq *Sock (listen *Portsock))  # listen for TCP connections
+        (if (fork)                       # fork each new client TCP connection
+            (kv-parent)                  # parent process
+            (kv-child)                   # child process
+            (kv-child-exit) ]            # child exits
