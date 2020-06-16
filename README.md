@@ -2,7 +2,7 @@
 
 This program mimics functionality of a [Redis](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications without on-disk persistence.
 
-The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named sockets.
+The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named pipess.
 
 ![GET/SET](https://user-images.githubusercontent.com/153401/84755112-ca381780-afb0-11ea-8d13-31d1a2152d2a.png)
 
@@ -47,7 +47,7 @@ That should return some interesting info about your server. See below for more e
   1. Load the client library in your project: `(load "libkvclient.l")`
   2. Set the server password `(setq *KV_pass "yourpass")`
   3. Start the client listener with `(kv-start-client)`
-  5. Send your client's identity with optional key/value pairs `(kv-identify "location" "Tokyo" "building" "109")`
+  5. Optionally send your client's identity with key/value pairs `(kv-identify "location" "Tokyo" "building" "109")`
   6. Send your command and arguments with `(kv-send-data '("INFO" "server"))`
 
 Received data will be returned as-is (list, integer, string, etc). Wrap the result like: `(kv-print Result)` to send the output to `STDOUT`:
@@ -213,7 +213,7 @@ OK 71FE650B
 
 # Notes and limitations
 
-This section will explain some important technical details about the code, and limitations on what this library and and can't do.
+This section will explain some important technical details about the code, and limitations on what this library can and can't do.
 
 ## Technical notes
 
