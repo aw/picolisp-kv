@@ -4,7 +4,7 @@ This program mimics functionality of a [Redis](https://redis.io) in-memory datab
 
 The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named sockets.
 
-![GET/SET](https://user-images.githubusercontent.com/153401/84720514-c0d98b80-af6d-11ea-8a2e-6f80a209f7c3.png)
+![GET/SET](https://user-images.githubusercontent.com/153401/84755112-ca381780-afb0-11ea-8d13-31d1a2152d2a.png)
 
   1. [Requirements](#requirements)
   2. [Getting Started](#getting-started)
@@ -278,7 +278,7 @@ This library comes with a large suite of [unit and integration tests](https://gi
 
     make check
 
-![Test results](https://user-images.githubusercontent.com/153401/84720565-e6ff2b80-af6d-11ea-8fa1-62c8b0a7fa21.png)
+![Test results](https://user-images.githubusercontent.com/153401/84755116-cb694480-afb0-11ea-9dcf-9b49750df423.png)
 
 # Contributing
 
