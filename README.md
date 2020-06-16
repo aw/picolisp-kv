@@ -18,8 +18,7 @@ The included `server.l` and `client.l` can be used to send and receive _"Redis-l
 
 # Requirements
 
-  * PicoLisp 32-bit `v3.1.11` to `v20.5.26`
-  * PicoLisp 64-bit `v17.12` to `v20.5.26`
+  * PicoLisp 32-bit/64-bit `v17.12` to `v20.5.26`
   * Linux or UNIX-like OS (with support for named pipes)
 
 # Getting Started
