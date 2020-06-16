@@ -148,10 +148,7 @@
   (kv-output "[child]=" *Pid " exiting")
   (kv-out-sibling "done")                # tell the sibling the child is done
   (when (info *Pipe_child)
-        (call 'rm *Pipe_child) )         # remove the temporary named pipe
-  (wait 1)                               # prevent the child from exiting fast
-  (close *Sock)                          # close the socket when all is done
-  (bye) ]                                # R.I.P.
+        (call 'rm *Pipe_child) ]         # remove the temporary named pipe
 
 # Receive the initial auth in a child process from the client over a TCP socket
 [de kv-child ()
@@ -163,11 +160,6 @@
         (kv-listen-sock)                 # auth OK, listen for client messages
         (kv-out-sibling "error" "NOAUTH")# auth NOT OK, tell the sibling
         (kv-out-sock "AUTH" "NOAUTH") ]  # auth NOT OK, tell the client
-
-# Parent process can perform some work
-[de kv-parent ()
-  # noop
-  ]
 
 # Fork another child process known as the 'sibling' which stores all the data
 [de kv-sibling ()
@@ -201,7 +193,8 @@
       (kv-sibling)                       # sibling process
       (loop                              # loop for new clients
         (setq *Sock (listen *Portsock))  # listen for TCP connections
-        (if (fork)                       # fork each new client TCP connection
-            (kv-parent)                  # parent process
-            (kv-child)                   # child process
-            (kv-child-exit) ]            # child exits
+        (NIL (fork) (close *Portsock))   # fork each new client TCP connection
+        (close *Sock) )                  # close the socket when we're done
+
+      (kv-child)                         # child process
+      (kv-child-exit) ]                  # final cleanup before the child exits
