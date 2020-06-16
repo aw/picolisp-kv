@@ -46,7 +46,7 @@
       (finally (unless (=T @) (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
-                (setq *KV_server_ok (kv-identify "one" 1 "two" 2))
+                (setq *KV_server_ok (kv-identify))
                 (kv-print *KV_server_ok)
                 (if *KV_poll
                     (loop                                 # loop indefinitely
