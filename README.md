@@ -39,7 +39,7 @@ That should return some interesting info about your server. See below for more e
 **Server**
 
   1. Load the library in your project: `(load "libkv.l")`
-  2. Set the server password: `(setq *KV_pass "yourpass")`
+  2. Set the server password: `(setq *KV_pass (kv-pass "yourpass"))`
   3. Start listening for requests: `(kv-listen)`
 
 **Client**
