@@ -50,14 +50,14 @@
   (setq *KV/%stats%/connected_clients
     (filter '((N) (unless (= (car N) Pid) N))
             *KV/%stats%/connected_clients) )
-  NIL ]                                  # NIL breaks from the (kv-parent) loop
+  NIL ]                                  # NIL breaks from the (kv-sibling) loop
 
 # Increment some statistics counters for the INFO command when there's an error
 [de kv-sibling-error (Pid Msg)
   (inc '*KV/%stats%/rejected_connections)
   (inc '*KV/%stats%/total_net_output_bytes (bytes Msg))
   (kv-remove-client Pid)                 # seriously, forget about the child
-  NIL ]                                  # NIL breaks from the (kv-parent) loop
+  NIL ]                                  # NIL breaks from the (kv-sibling) loop
 
 # Process the message depending on its type
 [de kv-sibling-message (Type Pid Msg)
@@ -124,7 +124,7 @@
   (and
     (lst? Auth)                          # is the client even sending a list?
     (= "AUTH" (car Auth))                # handshake
-    (= *KV_pass (caddr Auth))            # shared password
+    (= (kv-hash *KV_pass) (caddr Auth))  # shared password
     (kv-out-sock
       "AUTH"
       (kv-hash (pack (cadr Auth) *KV_uuid) ] # tell the client we're good

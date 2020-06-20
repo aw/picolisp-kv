@@ -23,7 +23,7 @@
         (case @
           (--verbose  (on *KV_verbose))               # default 'off'
           (--port     (setq *KV_port (format (opt)))) # default '6378'
-          (--pass     (setq *KV_pass (hash (opt))))   # required
+          (--pass     (setq *KV_pass (opt)))          # required
           (T          (kv-show-help) (bye 1)) ) )
       (kv-listen) )
 
