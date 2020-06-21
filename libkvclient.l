@@ -38,24 +38,35 @@
 
 # IPC
 # Send commands to the server on the TCP socket
-[de kv-send-data (Cmdargs)
-  (let Result
-    (case (uppc (pop 'Cmdargs))
-      ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
-      ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
-      ["IDENT"      (out *Sock (pr (append (list "IDENT") Cmdargs) ]
-      ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
-      ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
-      ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]
-      ["LOLWUT"     (out *Sock (pr (list "LOLWUT" (format (pop 'Cmdargs) ]
-      ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
-      ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
-      ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
-      ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
-      [T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ] )
-    (when Result (kv-receive-data) ]     # receive data from the server
+[de kv-send-commands (Cmdargs)
+  (case (uppc (pop 'Cmdargs))
+    ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
+    ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
+    ["IDENT"      (out *Sock (pr (append (list "IDENT") Cmdargs) ]
+    ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
+    ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
+    ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]
+    ["LOLWUT"     (out *Sock (pr (list "LOLWUT" (format (pop 'Cmdargs) ]
+    ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
+    ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
+    ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
+    ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
+    [T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ] ) ]
 
-# Receive data from the server on the TCP socket
+# Send commands to the server and receive a response
+[de kv-send-data (Cmdargs)
+  (when (kv-send-commands Cmdargs)
+        (kv-receive-data) ]              # receive data from the server
+
+# Receive data from the server on the TCP socket, return the result or NIL
+[de kv-receive ()
+  (in *Sock
+    (when (rd)
+      (let Result @
+        (case (car Result)
+          ("message"  (cdr Result)) ]    # good response from the server
+
+# Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
   (in *Sock
     (when (rd)
