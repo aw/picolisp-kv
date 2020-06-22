@@ -9,6 +9,7 @@
 [de kv-process (Child Request)
   (let Key (when (cadr Request) (kv-name (cadr Request)))
     (case (uppc (car Request))
+      ["BGSAVE"     (kv-bgsave-db) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -19,10 +20,14 @@
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (; Request 3) ]
       ["RPUSH"      (kv-cmd-rpush (cadr Request) Key (; Request 3) ]
+      ["SAVE"       (kv-save-db) ]
       ["SET"        (kv-cmd-set (cadr Request) (; Request 3) ]
       [T            "Error: Unknown command" ] ]
 
 # COMMANDS
+[de kv-cmd-flushall ()
+  (mapcar '((N) (off (kv-name N))) Keys) ]
+
 [de kv-cmd-del (Key Elements)
   (if (and Key (not (pre? "%stats%/" Key)))
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
@@ -36,11 +41,12 @@
 
 [de kv-cmd-info (Section)
   (case (lowc Section)
-    ["server"   (kv-info-format "Server" (kv-info-server) ]
-    ["clients"  (kv-info-format "Clients" (kv-info-clients) ]
-    ["memory"   (kv-info-format "Memory" (kv-info-memory) ]
-    ["stats"    (kv-info-format "Stats" (kv-info-stats) ]
-    [T          (kv-info-default) ] ]    # any other value returns *all* stats
+    ["server"      (kv-info-format "Server" (kv-info-server) ]
+    ["clients"     (kv-info-format "Clients" (kv-info-clients) ]
+    ["memory"      (kv-info-format "Memory" (kv-info-memory) ]
+    ["persistence" (kv-info-format "Persistence" (kv-info-persistence) ]
+    ["stats"       (kv-info-format "Stats" (kv-info-stats) ]
+    [T             (kv-info-default) ] ] # any other value returns *all* stats
 
 [de kv-cmd-lindex (Src Index)
   (when (and Src (num? Index))
@@ -118,6 +124,21 @@
               (cons "total_system_memory" Total_memory)
               (cons "total_system_memory_human" (/ Total_memory 1024 1024 1024) "M") ]
 
+[de kv-info-persistence ()
+  (list
+    (cons "loading" *KV/%stats%/loading)
+    (cons "rdb_changes_since_last_save" (if (info *KV_aof) (lines *KV_aof) 0))
+    (cons "rdb_bgsave_in_progress" (if (info *KV_db_lock) 1 0))
+    (cons "rdb_last_save_time" *KV/%stats%/rdb_last_save_time)
+    (cons "rdb_last_bgsave_status" *KV/%stats%/rdb_last_bgsave_status)
+    (cons "rdb_last_cow_size" *KV/%stats%/rdb_last_cow_size)
+    (cons "aof_enabled" (if *KV_persist 1 0))
+    (cons "aof_rewrite_in_progress" *KV/%stats%/aof_rewrite_in_progress)
+    (cons "aof_last_write_status" *KV/%stats%/aof_last_write_status)
+    (cons "aof_current_size" (if (info *KV_aof) (car @) 0))
+    (cons "aof_base_size" *KV/%stats%/aof_base_size)
+  ]
+
 [de kv-info-stats ()
   (list
     (cons "total_connections_received" (length *KV/%stats%/total_connections_received))
@@ -130,7 +151,8 @@
 
 [de kv-info-default ()
   (pack
-    (kv-info-format "Server"  (kv-info-server))
-    (kv-info-format "Clients" (kv-info-clients))
-    (kv-info-format "Memory"  (kv-info-memory))
-    (kv-info-format "Stats"   (kv-info-stats)) ]
+    (kv-info-format "Server"      (kv-info-server))
+    (kv-info-format "Clients"     (kv-info-clients))
+    (kv-info-format "Memory"      (kv-info-memory))
+    (kv-info-format "Persistence" (kv-info-persistence))
+    (kv-info-format "Stats"       (kv-info-stats)) ]

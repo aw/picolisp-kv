@@ -6,10 +6,11 @@
 
 (setq
   *KV_pass "testpasswordfortests"
+  *KV_persist 60
   *KV_port 46378 )
 
 (unless (fork)
-        (exec './server.l "--pass" *KV_pass "--port" *KV_port) )
+        (exec './server.l "--pass" *KV_pass "--port" *KV_port "--persist" *KV_persist) )
 
 (chdir (pack (car (file)) "test/")
   (mapcar load (filter '((N) (sub? "test_" N)) (dir "."))) )

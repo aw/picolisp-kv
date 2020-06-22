@@ -26,7 +26,7 @@
   *KV/%stats%/keyspace_misses )
 
 # LOAD
-(load "module.l" "commands.l" "lolwut.l")
+(load "module.l" "commands.l" "lolwut.l" "persistence.l")
 
 # STATS
 # Process the message and send the result to the child over the named pipe
@@ -38,9 +38,11 @@
     (kv-output "[msg]   to client: " (sym Result))
     (inc '*KV/%stats%/total_net_output_bytes (bytes Result))
 
-    (if Result
-        (inc '*KV/%stats%/keyspace_hits)
-        (inc '*KV/%stats%/keyspace_misses) )
+    (ifn  Result
+          (inc '*KV/%stats%/keyspace_misses)
+          (inc '*KV/%stats%/keyspace_hits)
+          (when *KV_persist
+                (kv-save-aof Msg)) )     # save the request to a log file
 
     (out Pipe_child                      # named pipe of the child process
       (pr (cons "message" Result) ]
@@ -75,12 +77,17 @@
 # IPC
 # Perform some tasks when the sibling exits
 [de kv-sibling-exit ()
-  (kv-output "[sibling]=" *Pid " exiting") ]
+  (kv-output "[sibling]=" *Pid " exiting")
+  (when *KV_persist
+        (when (info *KV_db_lock)
+              (kill (in *KV_db_lock (format (line T))) 9) ) # remove a locked process
+        (call 'rm "-f" *KV_aof_lock *KV_db_lock)
+        (unless *Msg (kv-save-db) ]
 
 # Receive a message in the sibling, from the child, over a named pipe, then
 # process the message and send the reply back to the child
 [de kv-listen-sibling ()
-  (in *Pipe_sibling                      # named pipe
+  [in *Pipe_sibling                      # named pipe
     (when (rd)                           # expect one message from the child
           (let Msg @
             (kv-output "[msg] from child : (pid: " (cadr Msg) ") " (sym Msg))
@@ -89,6 +96,7 @@
               (car Msg)                  # should be the 'type' of message
               (cadr Msg)                 # should be the 'sender' of the message
               (caddr Msg) ]              # should be the actual message
+  T ]
 
 # Receive a message from a sibling over a named pipe and send it to the client
 [de kv-listen-child ()
@@ -161,6 +169,24 @@
         (kv-out-sibling "error" "NOAUTH")# auth NOT OK, tell the sibling
         (kv-out-sock "AUTH" "NOAUTH") ]  # auth NOT OK, tell the client
 
+# Timer to check if a BGSAVE should be made or not
+[de kv-bgsave-timer ()
+  (setq *Elapsed (- (time) *Start))      # how much time elapsed since timer started
+  (ifn  (>= *Elapsed *KV_persist)        # is the timer expired?
+        (abort (- *KV_persist *Elapsed)  # stop processing if N seconds elapsed
+          (kv-listen-sibling) )          # listen for messages on the named pipe
+        (setq *Start (time))             # restart the timer because it expired
+        (kv-bgsave-db) ]                 # perform a BGSAVE
+
+# Start the loop which listens for new messages
+[de kv-sibling-loop ()
+  (use (*Start *Elapsed)
+    (setq *Start (time))                 # set a timer for the BGSAVE
+    (loop                                # loop breaks when the result is NIL
+      (if *KV_persist
+          (kv-bgsave-timer)              # checker the timer then listen for messages
+          (kv-listen-sibling) ]          # listen for messages on the named pipe
+
 # Fork another child process known as the 'sibling' which stores all the data
 [de kv-sibling ()
   (kv-mkfifo "sibling")                  # make a named pipe for the sibling
@@ -168,12 +194,16 @@
           (kv-output "[sibling]=" *Pid)
           (finally
             (kv-sibling-exit)            # sibling exits
-            (loop (kv-listen-sibling) ]  # loop breaks when the result is NIL
+            (when *KV_persist
+                  (kv-restore "DB" *KV_db)   # restore the DB from the database file
+                  (kv-restore "AOF" *KV_aof) # replay the AOF log and load the data
+                  (kv-save-db) )         # save the DB after loading AOF entries
+            (kv-sibling-loop) ]          # start the sibling loop
 
 # Cleanup child processes before exiting
 [de kv-cleanup-kids ()
   (when (kids)
-        (kv-output "[parent]=" *Pid " ending child processes: " (kids))
+        (kv-output "[parent]=" *Pid " ending child processes: " (glue "," (kids)))
         (tell 'bye) )                    # tell all the child processes to exit
   (kv-output "[parent]=" *Pid " exiting") ]
 

@@ -7,10 +7,12 @@
 
 [de APP_HELP
   ("usage"     "./server.l --pass <pass> [options]")
-  ("example"   "./server.l --pass foobared --port 6378 --verbose'^J")
+  ("example"   "./server.l --pass foobared --port 6378 --verbose --persist 60'^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
+               ("--binary"                "Store data in binary format instead of text (default: text)")
                ("--pass <password>"       "Password used by clients to access the server (required)")
+               ("--persist <seconds>"     "Number of seconds between database persists to disk (default: disabled)")
                ("--port <port>"           "TCP listen port for communication with clients (default: 6378)")
                ("--verbose"               "Verbose flag (default: False)") ]
 
@@ -21,9 +23,11 @@
       (kv-show-help)
       (while (opt)
         (case @
-          (--verbose  (on *KV_verbose))               # default 'off'
-          (--port     (setq *KV_port (format (opt)))) # default '6378'
-          (--pass     (setq *KV_pass (opt)))          # required
+          (--binary   (on *KV_binary) (kv-binary-set T))  # default 'off'
+          (--verbose  (on *KV_verbose))                   # default 'off'
+          (--port     (setq *KV_port (format (opt))))     # default '6378'
+          (--persist  (setq *KV_persist (format (opt))))  # default 'off'
+          (--pass     (setq *KV_pass (opt)))              # required
           (T          (kv-show-help) (bye 1)) ) )
       (kv-listen) )
 

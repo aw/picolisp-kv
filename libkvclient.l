@@ -40,6 +40,7 @@
 # Send commands to the server on the TCP socket
 [de kv-send-commands (Cmdargs)
   (case (uppc (pop 'Cmdargs))
+    ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
     ["IDENT"      (out *Sock (pr (append (list "IDENT") Cmdargs) ]
@@ -50,6 +51,7 @@
     ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
     ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
     ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
+    ["SAVE"       (out *Sock (pr (list "SAVE") ]
     ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
     [T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ] ) ]
 
