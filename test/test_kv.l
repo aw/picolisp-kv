@@ -7,6 +7,8 @@
   (assert-nil (kv-cmd-get (kv-name "nonexistant")) "[GET] Should return NIL if the key doesn't exist")
   (assert-equal "OK" (kv-cmd-set "testkey" "testvalue") "[SET] Should set a key and return OK")
   (assert-equal "testvalue" (kv-cmd-get "testkey") "[GET] Should return the value of the key")
+  (assert-equal "testvalue" (kv-cmd-getset "testkey" "newvalue") "[GETSET] Should return the old value")
+  (assert-equal "newvalue" (kv-cmd-get "testkey") "[GETSET] Should return the new value")
   ]
 
 [de test-commands-rpush ()
@@ -49,15 +51,15 @@
   (assert-nil (kv-cmd-ident) "[IDENT] Should return NIL if no child pid is provided")
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
-  (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "id" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-equal '(12345 (("id" . "abc") ("ip"))) (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0) "[LINDEX] Should return the info of the connected client")
+  (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
+  (assert-equal '12345 (cdr (assoc "pid" (cadr (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0)))) "[LINDEX] Should return the info of the connected client")
   (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
   ]
 
 [de test-commands-info ()
-  (assert-equal 46378 (cdr (assoc "tcp_port" (kv-info-server))) "[INFO-SERVER] Should return a list of server INFO")
+  (assert-equal *KV_port (cdr (assoc "tcp_port" (kv-info-server))) "[INFO-SERVER] Should return a list of server INFO")
   (assert-nil (cdr (assoc "connected_clients" (kv-info-server))) "[INFO-CLIENTS] Should return a list of clients INFO")
-  (assert-equal "1M" (cdr (assoc "used_memory_human" (kv-info-memory))) "[INFO-MEMORY] Should return a list of memory INFO")
+  (assert-kind-of 'String (cdr (assoc "used_memory_human" (kv-info-memory))) "[INFO-MEMORY] Should return a list of memory INFO")
   (assert-equal 1 (cdr (assoc "total_connections_received" (kv-info-stats))) "[INFO-STATS] Should return a list of stats INFO")
   (assert-kind-of 'String (kv-info-default) "[INFO] Should return a string of INFO")
   ]
@@ -97,21 +99,53 @@
   (assert-equal "OK" (kv-process 12345 (list "SET" "processkey" "processvalue")) "[PROCESS] Should process the SET command")
   (assert-equal "processvalue" (kv-process 12345 (list "GET" "processkey")) "[PROCESS] Should process the GET command")
   (assert-equal 3 (kv-process 12345 (list "RPUSH" "processkey" (11 22 33))) "[PROCESS] Should process the RPUSH command")
-  (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "id" "007"))) "[PROCESS] Should process the IDENT command")
+  (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
   (assert-equal 22 (kv-process 12345 (list "LINDEX" "processkey" 1)) "[PROCESS] Should process the LINDEX command")
   (assert-equal 3 (kv-process 12345 (list "LLEN" "processkey")) "[PROCESS] Should process the LLEN command")
-  (assert-kind-of 'String (kv-process 12345 (list "LOLWUT" 1)) "[PROCESS] Should process the LOLWUT command")
   (assert-equal 11 (kv-process 12345 (list "LPOP" "processkey")) "[PROCESS] Should process the LPOP command")
   (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" "processkey" "processdest")) "[PROCESS] Should process the LPOPRPUSH command")
   (assert-kind-of 'String (kv-process 12345 (list "info" "server")) "[PROCESS] Should process a lowercase command")
   ]
 
+[de test-commands-bgsave ()
+  (kv-cmd-rpush "mylist" (kv-name "mylist") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (let KV_desc (open *KV_aof)
+    (kv-save-aof '("RPUSH" "mylist" ("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) KV_desc)
+    (close KV_desc) )
+  (assert-equal "OK" (kv-cmd-get "%stats%/aof_last_write_status") "[BGSAVE] Should be OK for saving a valid AOF entry")
+  (kv-save-db-keys)
+  (kv-write-db)
+  (assert-equal 0 (kv-restore "DB" *KV_db) "[BGSAVE] Should return 0 when restoring the DB")
+  (assert-equal 0 (kv-restore "AOF" *KV_aof) "[BGSAVE] Should return 0 when restoring the AOF")
+  (out *KV_db_lock (prinl "12345"))
+  (assert-equal "Error: DB is locked for writing" (kv-locked?) "[BGSAVE] Should return an error if the DB is locked")
+  (call 'rm "-f" *KV_db_lock)
+  (assert-nil (kv-locked?) "[BGSAVE] Should return NIL if the DB is not locked")
+  (assert-kind-of 'String (kv-timestamp) "[BGSAVE] Should return a UNIX timestamp")
+  (kv-save-db-keys)
+  (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return a list if a temp DB exists after saving the keys")
+  (assert-t (kv-write-db) "[BGSAVE] Should write the DB to disk")
+  (assert-equal 0 (kv-rewrite-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
+  ]
+
+[de test-commands-exists ()
+  (kv-cmd-rpush "existlist" (kv-name "existlist") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (kv-cmd-rpush "existlist2" (kv-name "existlist2") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (assert-equal 1 (kv-cmd-exists "existlist") "[EXISTS] Should return 1 if the key exists")
+  (assert-equal 0 (kv-cmd-exists "nonexists") "[EXISTS] Should return 0 if the key doesn't exist")
+  (assert-equal 2 (kv-cmd-exists "existlist" '("existlist2")) "[EXISTS] Should return 2 if the two keys exist")
+  (assert-equal 3 (kv-cmd-exists "existlist" '("existlist" "existlist2")) "[EXISTS] Should return 3 if the two keys exist and one is a duplicate")
+  ]
+
+[de test-commands-ping ()
+  (assert-equal "PONG" (kv-cmd-ping) "[PING] Should return PONG")
+  (assert-equal "Hello" (kv-cmd-ping "Hello") "[PING] Should return Hello")
+  ]
 [execute
   (prinl "^J  Testing Key/Value^J")
 
   '(assert-equal 0 (kv-cmd-llen (kv-name "nonexistant")) "[LLEN] Should return 0 if the key doesn't exist")
-  '(assert-kind-of 'String (kv-cmd-lolwut 1) "[LOLWUT] Should return a sparkline as a string")
   '(test-commands-del)
   '(test-commands-get-set)
   '(test-commands-ident)
@@ -122,4 +156,7 @@
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)
+  '(test-commands-bgsave)
+  '(test-commands-exists)
+  '(test-commands-ping)
   ]

@@ -1,6 +1,6 @@
 # Redis-inspired key/value store written in PicoLisp
 
-This program mimics functionality of a [Redis](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications without on-disk persistence.
+This program mimics functionality of a [Redis](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications with optional on-disk persistence.
 
 The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named pipess.
 
@@ -11,14 +11,15 @@ The included `server.l` and `client.l` can be used to send and receive _"Redis-l
   3. [Usage](#usage)
   4. [Note and Limitations](#notes-and-limitations)
   5. [How it works](#how-it-works)
-  6. [Testing](#testing)
-  7. [Contributing](#contributing)
-  8. [Changelog](#changelog)
-  9. [License](#license)
+  6. [Persistence](#persistence)
+  7. [Testing](#testing)
+  8. [Contributing](#contributing)
+  9. [Changelog](#changelog)
+  10. [License](#license)
 
 # Requirements
 
-  * PicoLisp 32-bit/64-bit `v17.12` to `v20.5.26`
+  * PicoLisp 32-bit/64-bit `v17.12` to `v20.6.29`
   * Linux or UNIX-like OS (with support for named pipes)
 
 # Getting Started
@@ -47,8 +48,7 @@ That should return some interesting info about your server. See below for more e
   1. Load the client library in your project: `(load "libkvclient.l")`
   2. Set the server password `(setq *KV_pass "yourpass")`
   3. Start the client listener with `(kv-start-client)`
-  5. Optionally send your client's identity with key/value pairs `(kv-identify "location" "Tokyo" "building" "109")`
-  6. Send your command and arguments with `(kv-send-data '("INFO" "server"))`
+  4. Send your command and arguments with `(kv-send-data '("INFO" "server"))`
 
 Received data will be returned as-is (list, integer, string, etc). Wrap the result like: `(kv-print Result)` to send the output to `STDOUT`:
 
@@ -59,8 +59,6 @@ Received data will be returned as-is (list, integer, string, etc). Wrap the resu
 -> "yourpass"
 : (kv-start-client)         
 -> T
-: (kv-identify "key1" "value2" "key2" "value3")
--> "OK 35F2F81D"
 : (kv-send-data '("set" "mykey" 12345))
 -> "OK"
 : (kv-send-data '("get" "mykey"))      
@@ -81,18 +79,20 @@ This section describes usage information for the CLI tools `server.l` and `clien
 
 ## Server
 
-The server listens in the foreground for TCP connections on port `6378` by default. Only the `password`, `port`, and `verbosity` are configurable, and a `password` is required:
+The server listens in the foreground for TCP connections on port `6378` by default. Only the `password`, `port`, `persistence`, and `verbosity` are configurable, and a `password` is required:
 
 ```
 # server.l
 Usage:                    ./server.l --pass <pass> [options]
 
-Example:                  ./server.l --pass foobared --port 6378 --verbose'
+Example:                  ./server.l --pass foobared --port 6378 --verbose --persist 60
 
 Options:
 --help                    Show this help message and exit
 
+--binary                  Store data in binary format instead of text (default: plaintext)
 --pass <password>         Password used by clients to access the server (required)
+--persist <seconds>       Number of seconds between database persists to disk (default: disabled)
 --port <port>             TCP listen port for communication with clients (default: 6378)
 --verbose                 Verbose flag (default: False)
 ```
@@ -122,12 +122,12 @@ The client handles authentication, identification, and sending of _"Redis-like"_
 # client.l
 Usage:                    ./client.l --pass <pass> COMMAND [arguments]
 
-Example:                  ./client.l --pass foobared --port 6378 INFO server'
+Example:                  ./client.l --pass foobared --port 6378 INFO server
 
 Options:
 --help                    Show this help message and exit
 
---id <id>                 Uniquely identifiable client ID (default: randomly generated)
+--name <name>             Easily identifiable client name (default: randomly generated)
 --host  <host>            Hostname or IP of the key/value server (default: localhost)
 --pass  <data>            Password used to access the server (required)
 --poll  <seconds>         Number of seconds for polling the key/value server (default: don't poll)
@@ -136,23 +136,30 @@ Options:
 COMMAND LIST              Commands are case-insensitive and don't always require arguments.
                                   Examples:
 
-  DEL key [key ..]                DEL key1 key2 key3
-  GET key                         GET key1
-  INFO [section]                  INFO memory
-  LINDEX key index                LINDEX mylist 0
-  LLEN key                        LLEN mylist
-  LOLWUT number                   LOLWUT 5
-  LPOP key                        LPOP mylist
-  LPOPRPUSH source destination    LPOPRPUSH mylist myotherlist
-  RPUSH key element [element ..]  RPUSH mylist task1 task2 task3
-  SET key value                   SET mykey hello
+BGSAVE                  		BGSAVE
+CLIENT ID|KILL|LIST id [id ..]    	CLIENT LIST
+CONVERT                 		CONVERT
+DEL key [key ..]        		DEL key1 key2 key3
+EXISTS key [key ..]     		EXISTS key1 key2 key3
+GET key                 		GET key1
+GETSET key value        		GETSET mykey hello
+INFO [section]          		INFO memory
+LINDEX key index        		LINDEX mylist 0
+LLEN key                		LLEN mylist
+LPOP key                		LPOP mylist
+LPOPRPUSH source destination    	LPOPRPUSH mylist myotherlist
+PING [message]          		PING hello
+RPUSH key element [element ..]    	RPUSH mylist task1 task2 task3
+SAVE                    		SAVE
+SET key value           		SET mykey hello
 ```
 
-The `COMMANDS` take the exact same arguments as their respective [Redis commands](https://redis.io/commands).
+Most `COMMANDS` take the exact same arguments as their respective [Redis commands](https://redis.io/commands).
 
 ### Examples
 
 ```
+# Obtain information about the server
 ./client.l --pass yourpass INFO server
 OK 37D13779
 
@@ -166,14 +173,27 @@ uptime_in_seconds:1
 uptime_in_days:0
 executable:/usr/bin/picolisp
 
+# Set a key
 ./client.l --pass yourpass SET mykey myvalue
 OK 53E02FC6
 OK
 
+# Get a key
 ./client.l --pass yourpass GET mykey
 OK 40E83305
 myvalue
 
+# Get a key, then set it
+./client.l --pass yourpass GETSET mykey yourvalue
+OK 69E88646
+myvalue
+
+# Check if a key exists
+./client.l --pass yourpass EXISTS mykey
+OK 43BFA2C
+1
+
+# Delete a key
 ./client.l --pass yourpass DEL mykey
 OK 4C2B6088
 1
@@ -182,7 +202,12 @@ OK 4C2B6088
 OK 11242B95
 no data
 
-./client.l --pass yourpass --id 11242B95 RPUSH mylist task1 task2 task3
+./client.l --pass yourpass EXISTS mykey
+OK 5F1E8D78
+0
+
+# Add multiple values to a key (a list)
+./client.l --pass yourpass --name 11242B95 RPUSH mylist task1 task2 task3
 OK 11242B95
 3
 
@@ -190,25 +215,50 @@ OK 11242B95
 OK 4E7E0FC3
 5
 
+# Left pop a value from the head of a list
 ./client.l --pass yourpass LPOP mylist
 OK 258514BF
 task1
 
+# Check how many values are in a key (a list)
 ./client.l --pass yourpass LLEN mylist
 OK 107CF205
 4
 
+# Left pop a value from the head of a list, push it to the tail of another list
 ./client.l --pass yourpass LPOPRPUSH mylist mynewlist
 OK 46028880
 task2
 
+# Get the value of a key (a list) using a zero-based index
 ./client.l --pass yourpass LINDEX mynewlist -1
 OK 129AE0F8
 task2
 
-./client.l --pass yourpass LOLWUT 1
-OK 71FE650B
-█▆▆▄▁▂▄▂▅▄▂█▁▄▂▅▃▆▂█▃▅▃▄▆▄▇█▇▇▃▃█▅▃▇▄▄▃▇▄▃▇▂▂▄▆▃██▂▄▄█▆▃▅▅▃▅▂▃▄▃▇▇▇▄▄▄▄▂▄▆▁▂▅▁▄▆
+# Ping the server
+./client.l --pass yourpass PING
+OK 6DCE69EB
+PONG
+
+# Ping the server with a custom message
+./client.l --pass yourpass PING "Hello"
+OK 6F02D9DC
+Hello
+
+# Save the database in the foreground (blocking)
+./client.l --pass yourpass SAVE
+OK 1F60EABE
+OK
+
+# Save the database in the background (non-blocking)
+./client.l --pass yourpass BGSAVE
+OK 1270937D
+Background saving started
+
+# Convert the database from plaintext to binary, or binary to plaintext
+./client.l --pass yourpass CONVERT
+OK 25E3B970
+OK
 ```
 
 # Notes and limitations
@@ -232,7 +282,7 @@ This section will explain some important technical details about the code, and l
   * Since PicoLisp is not _event-based_, each new TCP connection spawns a new process, which limits concurrency to the host's available resources.
   * Not all [Redis commands](https://redis.io/commands) are implemented, because I didn't have an immediate need for them. There are plans to slowly add new commands as the need arises.
   * Using the `client.l` on the command-line, all values are stored as strings. Please use the TCP socket or named pipe directly to store integers and lists.
-  * Unlike _Redis_, there is no on-disk persistence and **all keys will be lost** when the server is restarted. This library was originally designed to be used as a temporary FIFO queue, with no need to persist the data. Support for persistence can be added eventually, and I'm open to pull-requests.
+  * ~~Unlike _Redis_, there is no on-disk persistence and **all keys will be lost** when the server is restarted. This library was originally designed to be used as a temporary FIFO queue, with no need to persist the data. Support for persistence can be added eventually, and I'm open to pull-requests.~~ Support for persistence has been added, see [Persistence](#persistence) below.
 
 # How it works
 
@@ -271,6 +321,81 @@ The parent process then forks another process, which we'll call the **sibling** 
 The forked child processes will each create their own named pipe, called `pipe_child_<pid>`, also in a temporary directory of the top-level **parent** process. The child process will listen on its own named pipe for messages sent by its older sister, the **sibling**. Once a message is received by the child, the response is sent back to the **client** over the TCP connection.
 
 The idea is to have the **sibling** be the holder of all the **keys**. Every _"Redis-like"_ command will have their data and statistics stored in the memory of the **sibling** process, and the **sibling** will handle receiving and sending its memory contents (keys/values) through named pipes to the respective **child** processes.
+
+# Persistence
+
+Similar to [Redis](https://redis.io/topics/persistence), this database implements "snapshotting" (full memory dump to disk) and "AOF" (append-only log file), however both features are tightly coupled, which makes for a much better experience.
+
+* Persistence is disabled by default, but can be enabled with the `--persist N` parameter, where `N` is the number of seconds between each `BGSAVE` (background save to disk).
+* The database is stored in plaintext by default, but can be stored in binary with the `--binary` parameter. Binary format (PLIO) loads and saves _much_ quicker than plaintext, but it becomes difficult to debug a corrupt entry.
+* The AOF follows the _WAL_ approach, where each write command is first written to the AOF on disk, and then processed in the key/value memory store.
+* The AOF only stores log entries since the previous `SAVE` or `BGSAVE`, so it technically shouldn't grow too large or unmanageable.
+* The database snapshot on disk is the most complete and important data, and should be backed up regularly.
+* _fsync_ is not managed by the database, so the server admin must ensure AOF log writes are actually persisted to disk.
+* The AOF on-disk format is **always plaintext**, to allow easy debugging and repair of a corrupt entry.
+* The AOF is opened for writing when the server is started, and closed only when the server is stopped (similar to web server log files). This lowers overhead of appending to the log, but requires care to avoid altering it while the server is running.
+* The `SAVE` and `BGSAVE` commands can still be sent even if persistence is disabled. This will dump the in-memory data to disk as if persistence was enabled.
+
+## How persistence is implemented
+
+Here we'll assume persistence was previously enabled and data has already been written and saved to disk.
+
+1. On server start, some memory is pre-allocated according to the DB's file size.
+2. The DB is then fully restored to memory
+3. If the AOF contains some entries, it is fully replayed to memory
+4. The DB is saved once more to disk and the AOF gets wiped
+5. A timer is started to perform periodic background DB saves
+6. The AOF is opened for writes, and every new client connection sends the command to the AOF
+7. When a `BGSAVE` (non-blocking) command is received, a temporay copy of the AOF is made, the current AOF is wiped, and a background process is forked to save the DB to disk
+8. When a `SAVE` (blocking) command is received, a the in-memory DB is saved to disk and the AOF is wiped.
+9. A backup of the DB file is always made before overwriting the current DB file.
+10. To help handle concurrency and persistence, temporary files are named `.kv.db.lock`, `.kv.db.tmp`, `.kv.aof.lock`, and `.kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
+
+## AOF format
+
+The AOF is stored by default in the `kv.aof` file as defined by `*KV_aof`.
+
+Here are two separate entries in a typical AOF:
+
+```
+("1596099036.281142829" 54042 ("RPUSH" "mytestlist" ("four" "five" "six")))
+("1596099059.683596840" 57240 ("RPUSH" "yourtestlist" ("seven" "eight" "nine")))
+```
+
+Each line is a PicoLisp list with only 3 columns:
+
+* Column 1: `String` Unix timestamp with nanoseconds for when the entry was created
+* Column 2: `Integer` Non-cryptographically secure hash (CRC) of the command and its arguments
+* Column 3: `List` Command name, first argument, and subsequent arguments
+
+When replaying the AOF, the server will ensure the hash of command and arguments match, to guarantee the data is intact. Replaying an AOF can be slow, depending on the number of keys/values.
+
+> **Note:** Manually modifying the AOF will require recomputing and replacing the hash with the result from `(kv-hash)` or PicoLisp `(hash)`.
+
+```
+(hash '("RPUSH" "mytestlist" ("four" "five" "zero")))
+-> 61453
+```
+
+## DB format
+
+The DB is stored by default in the `kv.db` file as defined by `*KV_db`. When backed up, it is named `.kv.db.old`.
+
+Here are two separate entries in a typical DB:
+
+```
+("smalldata" ("test1" "test2" "test3" "test4" "test5" "test6"))
+("fooh_1000" "test data 1000")
+```
+
+Each line is a PicoLisp list with the key in the `(car)`, and values in the `(cadr)`. They are quickly replayed and stored in memory with a simple `(set)` command.
+
+## Differences from Redis
+
+* Unlike _Redis_, persistence only allows specifying a time interval between each `BGSAVE`. Since the AOF is **always enabled**, it's not necessary to "save after N changes", so the config is much simpler.
+* Log rewriting is not something that "must be done", because chances are the AOF will never grow too large. Of course that depends on the number of changes occurring between each `BGSAVE`, but even then the AOF is wiped when a `BGSAVE` is initiated (and restored/rewritten if the DB happened to be locked).
+* The DB snapshot is used to reconstruct the dataset in memory, not the AOF. The AOF is only used to replay the commands since the last DB save, which is much faster and more efficient, particularly when using `--binary`.
+* There is no danger of _losing data_ when switching from `RDB` to `AOF`, because such a concept doesn't even exist.
 
 # Testing
 

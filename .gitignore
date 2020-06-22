@@ -1,1 +1,6 @@
 .modules/
+*.aof
+*.db
+*.lock
+*.old
+*.bin

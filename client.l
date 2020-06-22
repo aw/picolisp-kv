@@ -7,10 +7,10 @@
 
 [de APP_HELP
   ("usage"     "./client.l --pass <pass> COMMAND [arguments]")
-  ("example"   "./client.l --pass foobared --port 6378 INFO server'^J")
+  ("example"   "./client.l --pass foobared --port 6378 INFO server^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
-               ("--id <id>"               "Uniquely identifiable client ID (default: randomly generated)")
+               ("--name <name>"           "Easily identifiable client name (default: randomly generated)")
                ("--host  <host>"          "Hostname or IP of the key/value server (default: localhost)")
                ("--pass  <data>"          "Password used to access the server (required)")
                ("--poll  <seconds>"       "Number of seconds for polling the key/value server (default: don't poll)")
@@ -18,15 +18,21 @@
                ()
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
+               ("  BGSAVE"                            "^I^IBGSAVE")
+               ("  CLIENT ID|KILL|LIST id [id ..]"    "^ICLIENT LIST")
+               ("  CONVERT"                           "^I^ICONVERT")
                ("  DEL key [key ..]"                  "^I^IDEL key1 key2 key3")
+               ("  EXISTS key [key ..]"               "^I^IEXISTS key1 key2 key3")
                ("  GET key"                           "^I^IGET key1")
+               ("  GETSET key value"                  "^I^IGETSET mykey hello")
                ("  INFO [section]"                    "^I^IINFO memory")
                ("  LINDEX key index"                  "^I^ILINDEX mylist 0")
                ("  LLEN key"                          "^I^ILLEN mylist")
-               ("  LOLWUT number"                     "^I^ILOLWUT 5")
                ("  LPOP key"                          "^I^ILPOP mylist")
                ("  LPOPRPUSH source destination"      "^ILPOPRPUSH mylist myotherlist")
+               ("  PING [message]"                    "^I^IPING hello")
                ("  RPUSH key element [element ..]"    "^IRPUSH mylist task1 task2 task3")
+               ("  SAVE"                              "^I^ISAVE")
                ("  SET key value"                     "^I^ISET mykey hello") ]
 
 (chdir (car (file)) (load "libkvclient.l" "clihelpers.l"))
@@ -36,22 +42,25 @@
       (kv-show-help)
       (while (opt)
         (case @
-          (--host     (setq *KV_host (opt)))   # default 'localhost'
-          (--port     (setq *KV_port (opt)))   # default '6378'
-          (--id       (setq *KV_clientid (opt)))# default '<randomly generated>'
-          (--poll     (setq *KV_poll (opt)))   # enable polling of command
-          (--pass     (setq *KV_pass (opt)))   # required
-          (T          (queue '*Cmdargs @)) ) ) # save remaining cmdline arguments
+          (--help     (kv-show-help) (bye 1))
+          (--host     (setq *KV_host (opt)))                   # default 'localhost'
+          (--port     (setq *KV_port (opt)))                   # default '6378'
+          (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
+          (--poll     (setq *KV_poll (opt)))                   # enable polling of command
+          (--pass     (setq *KV_pass (opt)))                   # required password
+          (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
 
-      (finally (unless (=T @) (bye 1))
+      (finally
+        (unless (=T @) (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
-                (setq *KV_server_ok (kv-identify))
-                (kv-print *KV_server_ok)
+                (kv-print @)
                 (if *KV_poll
-                    (loop                                 # loop indefinitely
-                      (kv-print (kv-send-data *Cmdargs))  # send the data to the server (loop)
-                      (wait (* 1000 (format *KV_poll))) ) # wait N seconds before looping again
-                    (kv-print (kv-send-data *Cmdargs)) ]  # send the data to the server once
+                    (loop
+                      (NIL (when (kv-send-data *Cmdargs)
+                                (kv-print @)
+                                (wait (* 1000 (format *KV_poll)))
+                                T ) ) )
+                    (kv-print (kv-send-data *Cmdargs)) ]
 
 (bye)
