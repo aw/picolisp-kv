@@ -29,6 +29,9 @@
 (load "module.l" "commands.l" "lolwut.l" "persistence.l")
 
 # STATS
+[de kv-stat (Key Value)
+  (set (any (pack "*KV/%stats%/" Key)) Value) ]
+
 # Process the message and send the result to the child over the named pipe
 [de kv-sibling-job (Pid Msg)
   (let (Result (kv-process Pid Msg)      # here's the magic, process the message
@@ -42,14 +45,14 @@
           (inc '*KV/%stats%/keyspace_misses)
           (inc '*KV/%stats%/keyspace_hits)
           (when *KV_persist
-                (kv-save-aof Msg)) )     # save the request to a log file
+                (kv-save-aof Msg *KV_aof)) )# save the request to a log file
 
     (out Pipe_child                      # named pipe of the child process
       (pr (cons "message" Result) ]
 
 # Remove the child's process ID from the list of connected clients
 [de kv-remove-client (Pid)
-  (setq *KV/%stats%/connected_clients
+  (kv-stat "connected_clients"
     (filter '((N) (unless (= (car N) Pid) N))
             *KV/%stats%/connected_clients) )
   NIL ]                                  # NIL breaks from the (kv-sibling) loop
@@ -176,7 +179,7 @@
         (abort (- *KV_persist *Elapsed)  # stop processing if N seconds elapsed
           (kv-listen-sibling) )          # listen for messages on the named pipe
         (setq *Start (time))             # restart the timer because it expired
-        (kv-bgsave-db) ]                 # perform a BGSAVE
+        (kv-bgsave-db *KV_aof) ]                 # perform a BGSAVE
 
 # Start the loop which listens for new messages
 [de kv-sibling-loop ()

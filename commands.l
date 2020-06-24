@@ -9,7 +9,7 @@
 [de kv-process (Child Request)
   (let Key (when (cadr Request) (kv-name (cadr Request)))
     (case (uppc (car Request))
-      ["BGSAVE"     (kv-bgsave-db) ]
+      ["BGSAVE"     (kv-bgsave-db *KV_aof) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]

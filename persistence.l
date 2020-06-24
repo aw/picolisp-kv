@@ -10,18 +10,18 @@
   *KV_persist   NIL
   *KV_binary    NIL
   *KV_aof       "kv.log"
-  *KV_aof_lock  (pack "." *KV_aof ".lock")
-  *KV_aof_tmp   (pack "." *KV_aof ".tmp")
-  *KV_aof_old   (pack "." *KV_aof ".old") )
+  *KV_db        "kv.db" )
 
-[de kv-binary-set (Flg)
+[de kv-tmpfile-set ()
   (setq
-    *KV_db        (if Flg "kv.bin" "kv.db")
+    *KV_aof_lock  (pack "." *KV_aof ".lock")
+    *KV_aof_tmp   (pack "." *KV_aof ".tmp")
+    *KV_aof_old   (pack "." *KV_aof ".old")
     *KV_db_lock   (pack "." *KV_db ".lock")
     *KV_db_tmp    (pack "." *KV_db ".tmp")
     *KV_db_old    (pack "." *KV_db ".old") ]
 
-(kv-binary-set)                          # this lets us easily switch to binary
+(kv-tmpfile-set)                         # quickly change the name of temp files
 
 # INITIALIZE
 (zero *KV_aof_lines)
@@ -41,39 +41,41 @@
   *KV/%stats%/aof_base_size )
 
 # PERSISTENCE
-# Shorten the AOF by removing only the lines we replayed
-[de kv-shorten-aof ()
+# Truncate the AOF by removing only the lines we replayed
+[de kv-truncate-aof ()
+  (kv-output "======^JWriting AOF")
   (and
-    (gt0 *KV_aof_lines)                  # don't shorten the AOF for no reason
-    (kv-output "======^JWriting AOF")
+    (gt0 *KV_aof_lines)                  # don't truncate the AOF for no reason
     (call 'cp *KV_aof *KV_aof_old)       # backup the AOF before overwriting
     (out *KV_aof_tmp
       (in *KV_aof
         (do *KV_aof_lines (line)) (echo)) )# remove N lines from the AOF
     (call 'mv *KV_aof_tmp *KV_aof)       # atomic rename (overwrite) the AOF
     (call 'rm "-f" *KV_aof_old)          # remove the old AOF, we don't need it
-    (kv-output "AOF saved^J======") ]
+    (or (kv-output "AOF saved^J======") T)
+    T ]
 
 # Write the new AOF to disk
 [de kv-write-aof (Bg)
   (ctl *KV_aof_lock                      # try to obtain an exclusive lock first
     (one *KV/%stats%/aof_rewrite_in_progress)
     (if Bg
-        (kv-shorten-aof)                 # shorten the AOF
+        (kv-truncate-aof)                # truncate the AOF
         (out *KV_aof (rewind)) )         # wipe the AOF
 
     (zero *KV/%stats%/aof_rewrite_in_progress) ]
 
 # Write the new DB to disk
 [de kv-write-db ()
-  (setq *KV/%stats%/rdb_last_cow_size (car (info *KV_db_tmp)))
+  (kv-stat "rdb_last_cow_size" (car (info *KV_db_tmp)))
+  (kv-output "======^JWriting DB")
   (and
-    (kv-output "======^JWriting DB")
     (if (info *KV_db)
         (call 'cp *KV_db *KV_db_old)     # backup the DB before overwriting 
         T )
-    (call 'mv *KV_db_tmp *KV_db)         # atomic rename (overwrite) the DB
-    (kv-output "DB saved^J======") ]
+    (call 'mv *KV_db_tmp *KV_db) )       # atomic rename (overwrite) the DB
+    (or (kv-output "DB saved^J======") T)
+    T ]
 
 # Write the data in binary (pr) or plaintext (println) format
 [de kv-save-data @
@@ -103,7 +105,7 @@
       @
       (out *KV_db_lock (prinl *Pid))     # store the Pid to stop it later
       (kv-output "[dbwriter]=" *Pid " Saving the DB to " *KV_db)
-      (setq *KV/%stats%/rdb_last_save_time (kv-timestamp))
+      (kv-stat "rdb_last_save_time" (kv-timestamp))
 
       (finally
         (kv-save-cleanup)
@@ -112,26 +114,26 @@
               (kv-write-aof Bg) )        # write the AOF if necessary
         (unless *PPid (bye))             # exit if we're detached from parent
 
-        (setq *KV/%stats%/rdb_last_bgsave_status "OK") ]
+        (kv-stat "rdb_last_bgsave_status" "OK") ]
 
 # Check if the DB is locked for writing, and return the error message
 [de kv-locked? ()
   (when (info *KV_db_lock)
         (prinl "^J======^JDB is locked for writing by Pid " (in *KV_db_lock (line T)) ", not saving^J======^J")
-        (setq *KV/%stats%/rdb_last_bgsave_status "Error: DB is locked for writing") ]
+        (kv-stat "rdb_last_bgsave_status" "Error: DB is locked for writing") ]
 
 # Save the entire DB keyspace to a file in the background (fork)
-[de kv-bgsave-db ()
+[de kv-bgsave-db (Aof)
   (if (kv-locked?)
       @
-      (setq *KV/%stats%/rdb_last_save_time (kv-timestamp))
-      (setq *KV_aof_lines (lines *KV_aof))# set how many lines are in the AOF
+      (kv-stat "rdb_last_save_time" (kv-timestamp))
+      (setq *KV_aof_lines (lines Aof))   # set how many lines are in the AOF
 
       (unless (fork)
         (kv-save-db T)                   # save the DB
         (bye) )                          # exit once the DB is saved
 
-      (setq *KV/%stats%/rdb_last_bgsave_status "Background saving started") ]
+      (kv-stat "rdb_last_bgsave_status" "Background saving started") ]
 
 # Check if there was a read error, return the error message, and stop the parent
 [de kv-read-error (Type Filename)
@@ -141,8 +143,8 @@
 
 # Restore the in-memory database from entries stored in the DB file
 [de kv-restore-db (Filename)
-  (one *KV/%stats%/loading)
-  (setq *KV/%stats%/rdb_last_cow_size (car (info Filename)))
+  (kv-stat "loading" 1)
+  (kv-stat "rdb_last_cow_size" (car (info Filename)))
 
   (in Filename
     (while (if *KV_binary (rd) (read))
@@ -150,11 +152,12 @@
         (inc '*ERROR_LINE)
         (kv-cmd-set (car Result) (cadr Result)) ) ) )
 
-  (zero *KV/%stats%/loading) ]
+  (kv-stat "loading" 0) ]
 
 # Replay the append-only log file to re-load all the missing keys into the DB
 [de kv-replay-aof (Filename)
-  (setq *KV/%stats%/aof_base_size (if (info Filename) (car @) 0))
+  (kv-stat "aof_base_size" (if (info Filename) (car @) 0))
+  (kv-stat "loading_aof" 1)
 
   (in Filename
     (while (read)
@@ -163,7 +166,9 @@
             (and
               (inc '*ERROR_LINE)
               (kv-process *Pid (cadr Log)) ) # replay the entry from the log
-            (quit "Mismatched AOF entry, incorrect hash") ]
+            (quit "Mismatched AOF entry, incorrect hash") ) ) ) )
+
+  (kv-stat "loading_aof" 0) ]
 
 # Restore the DB or replay the AOF if its filesize is greater than 0 bytes
 [de kv-restore (Type Filename)
@@ -178,10 +183,10 @@
                 ("DB"     (kv-restore-db Filename)) ]
 
 # Save a write command to the append-only log file with a hash of the data
-[de kv-save-aof (Request)
+[de kv-save-aof (Request Aof)
   (when (member (car Request) '("DEL" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
         (ctl *KV_aof_lock                # try to obtain an exclusive lock first
-          (out (pack "+" *KV_aof)        # append to the file
+          (out (pack "+" Aof)        # append to the file
             (println (list (hash Request) Request) ) )
 
-          (setq *KV/%stats%/aof_last_write_status (if @ "OK" "FAILED") ]
+          (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]

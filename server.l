@@ -23,7 +23,7 @@
       (kv-show-help)
       (while (opt)
         (case @
-          (--binary   (on *KV_binary) (kv-binary-set T))  # default 'off'
+          (--binary   (on *KV_binary) (setq *KV_db "kv.bin") (kv-tmpfile-set))  # default 'off'
           (--verbose  (on *KV_verbose))                   # default 'off'
           (--port     (setq *KV_port (format (opt))))     # default '6378'
           (--persist  (setq *KV_persist (format (opt))))  # default 'off'

@@ -18,6 +18,7 @@
                ()
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
+               ("  BGSAVE"                            "^I^IBGSAVE")
                ("  DEL key [key ..]"                  "^I^IDEL key1 key2 key3")
                ("  GET key"                           "^I^IGET key1")
                ("  INFO [section]"                    "^I^IINFO memory")
@@ -27,6 +28,7 @@
                ("  LPOP key"                          "^I^ILPOP mylist")
                ("  LPOPRPUSH source destination"      "^ILPOPRPUSH mylist myotherlist")
                ("  RPUSH key element [element ..]"    "^IRPUSH mylist task1 task2 task3")
+               ("  SAVE"                              "^I^ISAVE")
                ("  SET key value"                     "^I^ISET mykey hello") ]
 
 (chdir (car (file)) (load "libkvclient.l" "clihelpers.l"))

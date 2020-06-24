@@ -107,6 +107,26 @@
   (assert-kind-of 'String (kv-process 12345 (list "info" "server")) "[PROCESS] Should process a lowercase command")
   ]
 
+[de test-commands-bgsave ()
+  (kv-cmd-rpush "mylist" (kv-name "mylist") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (kv-save-aof '("RPUSH" "mylist" ("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) *KV_aof)
+  (assert-equal "OK" (kv-cmd-get "%stats%/aof_last_write_status") "[BGSAVE] Should be OK for saving a valid AOF entry")
+  (kv-save-db-keys)
+  (kv-write-db)
+  (assert-equal 0 (kv-restore "DB" *KV_db) "[BGSAVE] Should return 0 when restoring the DB")
+  (assert-equal 0 (kv-restore "AOF" *KV_aof) "[BGSAVE] Should return 0 when restoring the AOF")
+  (out *KV_db_lock (prinl "12345"))
+  (assert-equal "Error: DB is locked for writing" (kv-locked?) "[BGSAVE] Should return an error if the DB is locked")
+  (call 'rm "-f" *KV_db_lock)
+  (assert-nil (kv-locked?) "[BGSAVE] Should return NIL if the DB is not locked")
+  (assert-kind-of 'Number (kv-timestamp) "[BGSAVE] Should return a UNIX timestamp")
+  (kv-save-db-keys)
+  (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return T if a temp DB exists after saving the keys")
+  (assert-t (kv-write-db) "[BGSAVE] Should write the DB to disk")
+  (assert-equal 0 (kv-write-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
+  (assert-equal 0 (kv-write-aof T) "[BGSAVE] Should return 0 when truncating the AOF")
+  ]
+
 [execute
   (prinl "^J  Testing Key/Value^J")
 
@@ -122,4 +142,5 @@
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)
+  '(test-commands-bgsave)
   ]
