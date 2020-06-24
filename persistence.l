@@ -9,7 +9,7 @@
 (setq
   *KV_persist   NIL
   *KV_binary    NIL
-  *KV_aof       "kv.log"
+  *KV_aof       "kv.aof"
   *KV_db        "kv.db" )
 
 [de kv-tmpfile-set ()
@@ -43,9 +43,9 @@
 # PERSISTENCE
 # Truncate the AOF by removing only the lines we replayed
 [de kv-truncate-aof ()
-  (kv-output "======^JWriting AOF")
   (and
     (gt0 *KV_aof_lines)                  # don't truncate the AOF for no reason
+    (or (kv-output "======^JWriting AOF") T)
     (call 'cp *KV_aof *KV_aof_old)       # backup the AOF before overwriting
     (out *KV_aof_tmp
       (in *KV_aof
@@ -68,22 +68,22 @@
 # Write the new DB to disk
 [de kv-write-db ()
   (kv-stat "rdb_last_cow_size" (car (info *KV_db_tmp)))
-  (kv-output "======^JWriting DB")
   (and
     (if (info *KV_db)
         (call 'cp *KV_db *KV_db_old)     # backup the DB before overwriting 
         T )
+    (or (kv-output "======^JWriting DB") T)
     (call 'mv *KV_db_tmp *KV_db) )       # atomic rename (overwrite) the DB
     (or (kv-output "DB saved^J======") T)
     T ]
 
 # Write the data in binary (pr) or plaintext (println) format
-[de kv-save-data @
-  (let Result (kv-cmd-get (rest))
+[de kv-save-data (Key)
+  (let Result (kv-cmd-get Key)
     (when Result
           (if *KV_binary
-              (pr (list (rest) Result))  # write the data in binary PLIO format
-              (println (list (rest) Result)) ]
+              (pr (list Key Result))  # write the data in binary PLIO format
+              (println (list Key Result)) ]
 
 # Write all the known keys to a temporary DB file
 [de kv-save-db-keys ()
@@ -186,7 +186,7 @@
 [de kv-save-aof (Request Aof)
   (when (member (car Request) '("DEL" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
         (ctl *KV_aof_lock                # try to obtain an exclusive lock first
-          (out (pack "+" Aof)        # append to the file
+          (out (pack "+" Aof)            # append to the file
             (println (list (hash Request) Request) ) )
 
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
