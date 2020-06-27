@@ -21,6 +21,8 @@
 
 (wait 5000)
 
+(setq *KV_port (rand 40001 49999)
+
 # run the client/server tests without persistence
 (chdir (pack (car (file)) "test/")
   (call 'rm "-f" *KV_db *KV_db_old *KV_aof *KV_aof_lock) # cleanup first
