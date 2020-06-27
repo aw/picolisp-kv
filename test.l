@@ -21,7 +21,7 @@
 
 (wait 5000)
 
-(setq *KV_port (rand 40001 49999)
+(setq *KV_port (rand 40001 49999))
 
 # run the client/server tests without persistence
 (chdir (pack (car (file)) "test/")
