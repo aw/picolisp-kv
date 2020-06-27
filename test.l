@@ -9,6 +9,8 @@
   *KV_persist 600 # 10 minutes
   *KV_port (rand 40001 49999) )
 
+(prinl "Starting server on port: " *KV_port)
+
 # run key/value store tests with persistence
 (chdir (pack (car (file)) "test/")
   (unless (fork)
@@ -17,7 +19,7 @@
 
 (kill (car (kids))) # ensure the server is stopped
 
-(wait 1000)
+(wait 5000)
 
 # run the client/server tests without persistence
 (chdir (pack (car (file)) "test/")
