@@ -230,4 +230,5 @@
         (close *Sock) )                  # close the socket when we're done
 
       (kv-child)                         # child process
-      (kv-child-exit) ]                  # final cleanup before the child exits
+      (kv-child-exit)                    # final cleanup before the child exits
+      (bye) ]
