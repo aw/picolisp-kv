@@ -7,7 +7,7 @@
 (setq
   *KV_pass "testpasswordfortests"
   *KV_persist 600 # 10 minutes
-  *KV_port 46378 )
+  *KV_port (rand 46301 46364) )
 
 # run key/value store tests with persistence
 (chdir (pack (car (file)) "test/")
