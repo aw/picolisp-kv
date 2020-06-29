@@ -82,7 +82,7 @@
   (let Result (kv-cmd-get Key)
     (when Result
           (if *KV_binary
-              (pr (list Key Result))  # write the data in binary PLIO format
+              (pr (list Key Result))     # write the data in binary PLIO format
               (println (list Key Result)) ]
 
 # Write all the known keys to a temporary DB file

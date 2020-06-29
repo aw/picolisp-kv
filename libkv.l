@@ -152,7 +152,7 @@
 
 # Send some output to the console
 [de kv-output @
-  (when *KV_verbose (prinl (rest) ]
+  (when *KV_verbose (prinl "[" (dat$ (date) "-") "T" (tim$ (time) T) "] " (rest) ]
 
 # Perform some tasks when the child exits
 [de kv-child-exit ()
