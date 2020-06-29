@@ -45,7 +45,7 @@
 [de kv-truncate-aof ()
   (and
     (gt0 *KV_aof_lines)                  # don't truncate the AOF for no reason
-    (or (kv-output " ====== Writing AOF ======") T)
+    (or (kv-output "====== Writing AOF ======") T)
     (call 'cp *KV_aof *KV_aof_old)       # backup the AOF before overwriting
     (out *KV_aof_tmp
       (in *KV_aof
