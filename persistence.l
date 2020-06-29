@@ -45,14 +45,14 @@
 [de kv-truncate-aof ()
   (and
     (gt0 *KV_aof_lines)                  # don't truncate the AOF for no reason
-    (or (kv-output "======^JWriting AOF") T)
+    (or (kv-output " ====== Writing AOF ======") T)
     (call 'cp *KV_aof *KV_aof_old)       # backup the AOF before overwriting
     (out *KV_aof_tmp
       (in *KV_aof
         (do *KV_aof_lines (line)) (echo)) )# remove N lines from the AOF
     (call 'mv *KV_aof_tmp *KV_aof)       # atomic rename (overwrite) the AOF
     (call 'rm "-f" *KV_aof_old)          # remove the old AOF, we don't need it
-    (or (kv-output "AOF saved^J======") T)
+    (or (kv-output "====== AOF saved ======") T)
     T ]
 
 # Write the new AOF to disk
@@ -72,9 +72,9 @@
     (if (info *KV_db)
         (call 'cp *KV_db *KV_db_old)     # backup the DB before overwriting 
         T )
-    (or (kv-output "======^JWriting DB") T)
+    (or (kv-output "====== Writing DB ======") T)
     (call 'mv *KV_db_tmp *KV_db) )       # atomic rename (overwrite) the DB
-    (or (kv-output "DB saved^J======") T)
+    (or (kv-output "====== DB saved ======") T)
     T ]
 
 # Write the data in binary (pr) or plaintext (println) format
@@ -119,7 +119,7 @@
 # Check if the DB is locked for writing, and return the error message
 [de kv-locked? ()
   (when (info *KV_db_lock)
-        (prinl "^J======^JDB is locked for writing by Pid " (in *KV_db_lock (line T)) ", not saving^J======^J")
+        (out 2 (prinl "^J======^JDB is locked for writing by Pid " (in *KV_db_lock (line T)) ", not saving^J======^J"))
         (kv-stat "rdb_last_bgsave_status" "Error: DB is locked for writing") ]
 
 # Save the entire DB keyspace to a file in the background (fork)
@@ -138,7 +138,7 @@
 # Check if there was a read error, return the error message, and stop the parent
 [de kv-read-error (Type Filename)
   (when *Msg
-        (prinl "^J======^JERROR: " Type " error on line " *ERROR_LINE " of " Filename ": " *Msg "^J======^J")
+        (out 2 (prinl "^J======^JERROR: " Type " error on line " *ERROR_LINE " of " Filename ": " *Msg "^J======^J"))
         (kill *PPid) ]
 
 # Restore the in-memory database from entries stored in the DB file
