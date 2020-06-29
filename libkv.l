@@ -159,7 +159,8 @@
   (kv-output "[child]=" *Pid " exiting")
   (kv-out-sibling "done")                # tell the sibling the child is done
   (when (info *Pipe_child)
-        (call 'rm *Pipe_child) ]         # remove the temporary named pipe
+        (call 'rm *Pipe_child) )         # remove the temporary named pipe
+  (bye) ]
 
 # Receive the initial auth in a child process from the client over a TCP socket
 [de kv-child ()
@@ -229,6 +230,6 @@
         (NIL (fork) (close *Portsock))   # fork each new client TCP connection
         (close *Sock) )                  # close the socket when we're done
 
-      (kv-child)                         # child process
-      (kv-child-exit)                    # final cleanup before the child exits
-      (bye) ]
+      (finally
+        (kv-child-exit)                    # final cleanup before the child exits
+        (kv-child) ]                        # child process

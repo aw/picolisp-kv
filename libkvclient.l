@@ -63,10 +63,7 @@
 # Receive data from the server on the TCP socket, return the result or NIL
 [de kv-receive ()
   (in *Sock
-    (when (rd)
-      (let Result @
-        (case (car Result)
-          ("message"  (cdr Result)) ]    # good response from the server
+    (when (rd) @ ] # response from the server, good or bad
 
 # Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
