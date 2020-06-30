@@ -93,7 +93,6 @@
   [in *Pipe_sibling                      # named pipe
     (when (rd)                           # expect one message from the child
           (let Msg @
-            (kv-output "[msg] from child : (pid: " (cadr Msg) ") " (sym Msg))
             (kv-stats-update (cadr Msg) (caddr Msg))
             (kv-sibling-message          # process the child's message
               (car Msg)                  # should be the 'type' of message
@@ -230,6 +229,5 @@
         (NIL (fork) (close *Portsock))   # fork each new client TCP connection
         (close *Sock) )                  # close the socket when we're done
 
-      (finally
-        (kv-child-exit)                    # final cleanup before the child exits
-        (kv-child) ]                        # child process
+      (kv-child)                         # child process
+      (kv-child-exit) ]                   # final cleanup before the child exits
