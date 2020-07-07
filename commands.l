@@ -31,11 +31,11 @@
 [de kv-cmd-del (Key Elements)
   (if (and Key (not (pre? "%stats%/" Key)))
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
-      0 ]                                # return 0 if no key is specified
+      0 ]                                                      # return 0 if no key is specified
 
 [de kv-cmd-ident (Child Elements)
-  (when (and Child Elements (lst? Elements))  # NIL if the IDENT isn't a list
-        [push1 '*KV/%stats%/connected_clients # only add to the list if it's unique
+  (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
+        [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
           (list Child (append Elements (list (cons "ip" *Adr) ]
         (pack "OK " (cdr (assoc "id" Elements) ]
 
@@ -46,7 +46,7 @@
     ["memory"      (kv-info-format "Memory" (kv-info-memory) ]
     ["persistence" (kv-info-format "Persistence" (kv-info-persistence) ]
     ["stats"       (kv-info-format "Stats" (kv-info-stats) ]
-    [T             (kv-info-default) ] ] # any other value returns *all* stats
+    (T             (kv-info-default) ]
 
 [de kv-cmd-lindex (Src Index)
   (when (and Src (num? Index))
@@ -59,8 +59,7 @@
   (length (car Key) ]
 
 [de kv-cmd-lpop (Src)
-  (when (and Src (not (pre? "*KV/%stats%/" Src)))
-        (pop Src) ]
+  (when (and Src (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (pop Src))
@@ -70,13 +69,13 @@
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
-        (push1 (kv-name "keys") Key)     # keep a list of all the keys
+        (push1 (kv-name "keys") Key)                           # keep a list of all the keys
         (mapc '((N) (queue Dst N)) Elements)
         (length (car Dst) ]
 
 [de kv-cmd-set (Key Value)
   (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
-        (push1 (kv-name "keys") Key)     # keep a list of all the keys
+        (push1 (kv-name "keys") Key)                           # keep a list of all the keys
         "OK" ]
 
 [de kv-cmd-get (Key)

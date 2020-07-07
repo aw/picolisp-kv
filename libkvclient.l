@@ -13,9 +13,9 @@
   *KV_clientid  (hex (abs (rand)))
   *KV_port      6378
   *KV_pass      NIL
-  *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E" ) # for server handshake
+  *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E" ) # for server handshake, do not change
 
-(off *KV_poll)                           # disable polling by default
+(off *KV_poll)
 
 # LOAD
 (load "module.l")
@@ -33,8 +33,9 @@
     ((lst? Result)  (prinl (glue "," Result)))
     (T              (prinl Result) ]
 
+# non cryptographically secure hash, can be changed in the future
 [de kv-hash (String)
-  (hash String) ]                        # non cryptographically secure hash
+  (hash String) ]
 
 # IPC
 # Send commands to the server on the TCP socket
@@ -53,17 +54,15 @@
     ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
     ["SAVE"       (out *Sock (pr (list "SAVE") ]
     ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
-    [T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ] ) ]
+    (T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ]
 
 # Send commands to the server and receive a response
 [de kv-send-data (Cmdargs)
-  (when (kv-send-commands Cmdargs)
-        (kv-receive-data) ]              # receive data from the server
+  (when (kv-send-commands Cmdargs) (kv-receive-data) ]
 
 # Receive data from the server on the TCP socket, return the result or NIL
 [de kv-receive ()
-  (in *Sock
-    (when (rd) @ ] # response from the server, good or bad
+  (in *Sock (when (rd) @) ]
 
 # Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
@@ -72,9 +71,9 @@
       (let Result @
         (if (cdr Result)
             (case (car Result)
-              ("message" (cdr Result))   # good response from the server
-              (T         "unknown data"))# bad response from the server
-            "no data" ) ]                # NIL response from the server
+              ("message" (cdr Result))                         # good response from the server
+              (T         "unknown data"))                      # bad response from the server
+            "no data" ) ]                                      # NIL response from the server
 
 # Send client identity command to the server with a variable number of arguments
 [de kv-identify @
@@ -97,5 +96,5 @@
 [de kv-start-client ()
   (setq *Sock (connect *KV_host *KV_port))
   (if *Sock
-      (kv-authenticate)                  # perform initial handshake and auth
+      (kv-authenticate)
       (kv-throw "ERROR: could not connect to server") ]

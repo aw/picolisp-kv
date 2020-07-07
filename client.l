@@ -38,12 +38,12 @@
       (kv-show-help)
       (while (opt)
         (case @
-          (--host     (setq *KV_host (opt)))   # default 'localhost'
-          (--port     (setq *KV_port (opt)))   # default '6378'
-          (--id       (setq *KV_clientid (opt)))# default '<randomly generated>'
-          (--poll     (setq *KV_poll (opt)))   # enable polling of command
-          (--pass     (setq *KV_pass (opt)))   # required
-          (T          (queue '*Cmdargs @)) ) ) # save remaining cmdline arguments
+          (--host     (setq *KV_host (opt)))                   # default 'localhost'
+          (--port     (setq *KV_port (opt)))                   # default '6378'
+          (--id       (setq *KV_clientid (opt)))               # default '<randomly generated>'
+          (--poll     (setq *KV_poll (opt)))                   # enable polling of command
+          (--pass     (setq *KV_pass (opt)))                   # required password
+          (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
 
       (finally (unless (=T @) (bye 1))
         (catch 'kv-error
@@ -51,9 +51,9 @@
                 (setq *KV_server_ok (kv-identify))
                 (kv-print *KV_server_ok)
                 (if *KV_poll
-                    (loop                                 # loop indefinitely
-                      (kv-print (kv-send-data *Cmdargs))  # send the data to the server (loop)
-                      (wait (* 1000 (format *KV_poll))) ) # wait N seconds before looping again
-                    (kv-print (kv-send-data *Cmdargs)) ]  # send the data to the server once
+                    (loop
+                      (kv-print (kv-send-data *Cmdargs))       # send the data to the server (loop)
+                      (wait (* 1000 (format *KV_poll))) )      # wait N seconds before looping again
+                    (kv-print (kv-send-data *Cmdargs)) ]       # send the data to the server once
 
 (bye)
