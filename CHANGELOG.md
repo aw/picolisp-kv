@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.0 (TBD)
+
+  * Fix bug where client IP is not saved in client list
+  * Removed the `IDENT` command from client library
+
 ## 0.13.0 (2020-06-27)
 
   * Fix issue where child process doesn't actually 'exit' when exiting (in a fork)

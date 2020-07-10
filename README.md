@@ -47,8 +47,7 @@ That should return some interesting info about your server. See below for more e
   1. Load the client library in your project: `(load "libkvclient.l")`
   2. Set the server password `(setq *KV_pass "yourpass")`
   3. Start the client listener with `(kv-start-client)`
-  5. Optionally send your client's identity with key/value pairs `(kv-identify "location" "Tokyo" "building" "109")`
-  6. Send your command and arguments with `(kv-send-data '("INFO" "server"))`
+  4. Send your command and arguments with `(kv-send-data '("INFO" "server"))`
 
 Received data will be returned as-is (list, integer, string, etc). Wrap the result like: `(kv-print Result)` to send the output to `STDOUT`:
 
@@ -59,8 +58,6 @@ Received data will be returned as-is (list, integer, string, etc). Wrap the resu
 -> "yourpass"
 : (kv-start-client)         
 -> T
-: (kv-identify "key1" "value2" "key2" "value3")
--> "OK 35F2F81D"
 : (kv-send-data '("set" "mykey" 12345))
 -> "OK"
 : (kv-send-data '("get" "mykey"))      

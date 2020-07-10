@@ -69,7 +69,9 @@
     (lst? Auth)
     (= "AUTH" (car Auth))
     (= (kv-hash *KV_pass) (caddr Auth))
-    (kv-out-client "AUTH" (kv-hash (pack (cadr Auth) *KV_uuid) ]
+    (kv-out-client "AUTH" (kv-hash (pack (cadr Auth) *KV_uuid)))
+    (kv-out-sibling "message" (list "IDENT" (cons "id" (usec)) (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
+    (kv-listen-child) ]
 
 # Receive the initial auth in a child process from the client over a TCP socket
 [de kv-child ()
@@ -113,13 +115,15 @@
 [de kv-remove-client (Pid)
   (kv-stat "connected_clients"
     (filter '((N) (unless (= (car N) Pid) N))
-            *KV/%stats%/connected_clients) ]
+            *KV/%stats%/connected_clients) )
+  NIL ]                                  # NIL breaks from (kv-sibling-loop)
 
 # Increment some statistics counters for the INFO command when there's an error
 [de kv-sibling-error (Pid Msg)
   (inc '*KV/%stats%/rejected_connections)
   (inc '*KV/%stats%/total_net_output_bytes (bytes Msg))
-  (kv-remove-client Pid) ]
+  (kv-remove-client Pid)
+  NIL ]                                  # NIL breaks from (kv-sibling-loop)
 
 # Process the message depending on its type
 [de kv-sibling-message (Type Pid Msg)
@@ -137,7 +141,7 @@
 # Receive a message in the sibling, from the child, over a named pipe, then
 # process the message and send the reply back to the child
 [de kv-listen-sibling ()
-  (in *Pipe_sibling
+  [in *Pipe_sibling
     (when (rd)
           (let Msg @
             (kv-stats-update (cadr Msg) (caddr Msg))
@@ -145,6 +149,7 @@
               (car Msg)                                        # should be the 'type' of message
               (cadr Msg)                                       # should be the sender's Pid
               (caddr Msg) ]                                    # should be the actual message
+  T ]
 
 # Timer to make a BGSAVE if necessary
 [de kv-bgsave-timer ()

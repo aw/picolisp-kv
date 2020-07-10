@@ -48,8 +48,7 @@
       (finally (unless (=T @) (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
-                (setq *KV_server_ok (kv-identify))
-                (kv-print *KV_server_ok)
+                (kv-print @)
                 (if *KV_poll
                     (loop
                       (kv-print (kv-send-data *Cmdargs))       # send the data to the server (loop)

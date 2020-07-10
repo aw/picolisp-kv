@@ -36,7 +36,7 @@
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
         [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
-          (list Child (append Elements (list (cons "ip" *Adr) ]
+          (list Child Elements) ]
         (pack "OK " (cdr (assoc "id" Elements) ]
 
 [de kv-cmd-info (Section)

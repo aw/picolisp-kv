@@ -44,7 +44,6 @@
     ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
-    ["IDENT"      (out *Sock (pr (append (list "IDENT") Cmdargs) ]
     ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
     ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
     ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]
@@ -75,21 +74,12 @@
               (T         "unknown data"))                      # bad response from the server
             "no data" ) ]                                      # NIL response from the server
 
-# Send client identity command to the server with a variable number of arguments
-[de kv-identify @
-  (kv-send-data
-    (append
-      (list "IDENT"
-        (cons "id" *KV_clientid)
-        (cons "hostname" (in '(hostname) (line T))) )
-      (make (while (rest) (link (cons (next) (next) ]
-
 # Authenticate to the server by hashing the password and validating the response
 [de kv-authenticate ()
   (out *Sock (pr (list "AUTH" *KV_clientid (kv-hash *KV_pass))))
   (in *Sock
     (if (and (rd) (= (cdr @) (kv-hash (pack *KV_clientid *KV_uuid))))
-            T
+            (kv-receive-data)
             (kv-throw "ERROR: bad auth") ]
 
 # Open a TCP socket and connect to the server
