@@ -10,6 +10,9 @@
   (let Key (when (cadr Request) (kv-name (cadr Request)))
     (case (uppc (car Request))
       ["BGSAVE"     (kv-bgsave-db *KV_aof) ]
+      ["CLIENT ID"  (kv-cmd-client-id Child) ]
+      ["CLIENT KILL" (kv-cmd-client-kill (cadr Request) (; Request 3) ]
+      ["CLIENT LIST" (kv-cmd-client-list) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -28,6 +31,17 @@
 [de kv-cmd-flushall ()
   (mapcar '((N) (off (kv-name N))) Keys) ]
 
+[de kv-cmd-client-id (Child)
+  (cdr (assoc "id" (cadr (assoc Child (get (kv-value "%stats%/connected_clients") ]
+
+[de kv-cmd-client-kill (Cmd Arg)
+  (case (uppc Cmd)
+    ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N)) (link T))) (get (kv-value "%stats%/connected_clients") ]
+    (T      0) ]
+
+[de kv-cmd-client-list ()
+  (glue "^J" (mapcar '((N) (glue " " (mapcar '((S) (pack (car S) "=" (cdr S))) (cadr N)))) (get (kv-value "%stats%/connected_clients") ]
+
 [de kv-cmd-del (Key Elements)
   (if (and Key (not (pre? "%stats%/" Key)))
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
@@ -36,8 +50,8 @@
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
         [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
-          (list Child Elements) ]
-        (pack "OK " (cdr (assoc "id" Elements) ]
+          (list Child (append Elements (list (cons "pid" Child) ]
+        (pack "OK " (cdr (assoc "name" Elements) ]
 
 [de kv-cmd-info (Section)
   (case (lowc Section)

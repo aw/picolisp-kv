@@ -49,8 +49,8 @@
   (assert-nil (kv-cmd-ident) "[IDENT] Should return NIL if no child pid is provided")
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
-  (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "id" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-equal '(12345 (("id" . "abc") ("ip"))) (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0) "[LINDEX] Should return the info of the connected client")
+  (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
+  (assert-equal '(12345 (("name" . "abc") ("pid" . 12345))) (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0) "[LINDEX] Should return the info of the connected client")
   (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
   ]
 
@@ -97,7 +97,7 @@
   (assert-equal "OK" (kv-process 12345 (list "SET" "processkey" "processvalue")) "[PROCESS] Should process the SET command")
   (assert-equal "processvalue" (kv-process 12345 (list "GET" "processkey")) "[PROCESS] Should process the GET command")
   (assert-equal 3 (kv-process 12345 (list "RPUSH" "processkey" (11 22 33))) "[PROCESS] Should process the RPUSH command")
-  (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "id" "007"))) "[PROCESS] Should process the IDENT command")
+  (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
   (assert-equal 22 (kv-process 12345 (list "LINDEX" "processkey" 1)) "[PROCESS] Should process the LINDEX command")
   (assert-equal 3 (kv-process 12345 (list "LLEN" "processkey")) "[PROCESS] Should process the LLEN command")

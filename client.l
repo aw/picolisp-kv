@@ -10,7 +10,7 @@
   ("example"   "./client.l --pass foobared --port 6378 INFO server'^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
-               ("--id <id>"               "Uniquely identifiable client ID (default: randomly generated)")
+               ("--name <name>"           "Easily identifiable client name (default: randomly generated)")
                ("--host  <host>"          "Hostname or IP of the key/value server (default: localhost)")
                ("--pass  <data>"          "Password used to access the server (required)")
                ("--poll  <seconds>"       "Number of seconds for polling the key/value server (default: don't poll)")
@@ -40,7 +40,7 @@
         (case @
           (--host     (setq *KV_host (opt)))                   # default 'localhost'
           (--port     (setq *KV_port (opt)))                   # default '6378'
-          (--id       (setq *KV_clientid (opt)))               # default '<randomly generated>'
+          (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
           (--poll     (setq *KV_poll (opt)))                   # enable polling of command
           (--pass     (setq *KV_pass (opt)))                   # required password
           (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
@@ -51,8 +51,10 @@
                 (kv-print @)
                 (if *KV_poll
                     (loop
-                      (kv-print (kv-send-data *Cmdargs))       # send the data to the server (loop)
-                      (wait (* 1000 (format *KV_poll))) )      # wait N seconds before looping again
-                    (kv-print (kv-send-data *Cmdargs)) ]       # send the data to the server once
+                      (NIL (when (kv-send-data *Cmdargs)
+                                (kv-print @)
+                                (wait (* 1000 (format *KV_poll)))
+                                T ) ) )
+                    (kv-print (kv-send-data *Cmdargs)) ]
 
 (bye)

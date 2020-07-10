@@ -42,6 +42,9 @@
 [de kv-send-commands (Cmdargs)
   (case (uppc (pop 'Cmdargs))
     ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
+    ["CLIENT ID"  (out *Sock (pr (list "CLIENT ID") ]
+    ["CLIENT KILL" (out *Sock (pr (list "CLIENT KILL" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
+    ["CLIENT LIST" (out *Sock (pr (list "CLIENT LIST") ]
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
     ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]

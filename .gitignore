@@ -1,5 +1,5 @@
 .modules/
-*.log
+*.aof
 *.db
 *.lock
 *.old

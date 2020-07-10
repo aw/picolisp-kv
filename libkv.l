@@ -33,8 +33,7 @@
 [de kv-child-exit ()
   (kv-output "[child]=" *Pid " exiting")
   (kv-out-sibling "done")
-  (when (info *Pipe_child) (call 'rm *Pipe_child))
-  (bye) ]
+  (when (info *Pipe_child) (call 'rm *Pipe_child)) ]
 
 # Receive a message from a sibling over a named pipe and send it to the client
 [de kv-listen-child ()
@@ -113,9 +112,8 @@
 
 # Remove the child's process ID from the list of connected clients
 [de kv-remove-client (Pid)
-  (kv-stat "connected_clients"
-    (filter '((N) (unless (= (car N) Pid) N))
-            *KV/%stats%/connected_clients) )
+  (kill Pid)
+  (kv-stat "connected_clients" (filter '((N) (unless (= (car N) Pid) N)) *KV/%stats%/connected_clients))
   NIL ]                                  # NIL breaks from (kv-sibling-loop)
 
 # Increment some statistics counters for the INFO command when there's an error
@@ -233,5 +231,6 @@
       (kv-cleanup-kids)
       (kv-sibling)
       (kv-listen-loop)
-      (kv-child)
-      (kv-child-exit) ]
+      (finally
+        (kv-child-exit)
+        (kv-child) ]
