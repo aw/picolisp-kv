@@ -10,9 +10,7 @@
   (let Key (when (cadr Request) (kv-name (cadr Request)))
     (case (uppc (car Request))
       ["BGSAVE"     (kv-bgsave-db *KV_aof) ]
-      ["CLIENT ID"  (kv-cmd-client-id Child) ]
-      ["CLIENT KILL" (kv-cmd-client-kill (cadr Request) (; Request 3) ]
-      ["CLIENT LIST" (kv-cmd-client-list) ]
+      ["CLIENT"     (kv-cmd-client Child (cdr Request) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -31,11 +29,18 @@
 [de kv-cmd-flushall ()
   (mapcar '((N) (off (kv-name N))) Keys) ]
 
+[de kv-cmd-client (Child Cmd)
+  (case (uppc (car Cmd))
+    ("ID"   (kv-cmd-client-id Child))
+    ("KILL" (kv-cmd-client-kill (; Cmd 2) (; Cmd 3)))
+    ("LIST" (kv-cmd-client-list))
+    (T      "Error: Unknown client command") ]
+
 [de kv-cmd-client-id (Child)
   (cdr (assoc "id" (cadr (assoc Child (get (kv-value "%stats%/connected_clients") ]
 
-[de kv-cmd-client-kill (Cmd Arg)
-  (case (uppc Cmd)
+[de kv-cmd-client-kill (Filter Arg)
+  (case (uppc Filter)
     ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N)) (link T))) (get (kv-value "%stats%/connected_clients") ]
     (T      0) ]
 
