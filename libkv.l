@@ -23,7 +23,8 @@
   *KV/%stats%/total_net_output_bytes
   *KV/%stats%/rejected_connections
   *KV/%stats%/keyspace_hits
-  *KV/%stats%/keyspace_misses )
+  *KV/%stats%/keyspace_misses
+  *KV/%stats%/last_client )
 
 # LOAD
 (load "module.l" "commands.l" "lolwut.l" "persistence.l")
@@ -69,7 +70,7 @@
     (= "AUTH" (car Auth))
     (= (kv-hash *KV_pass) (caddr Auth))
     (kv-out-client "AUTH" (kv-hash (pack (cadr Auth) *KV_uuid)))
-    (kv-out-sibling "message" (list "IDENT" (cons "id" (usec)) (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
+    (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
     (kv-listen-child) ]
 
 # Receive the initial auth in a child process from the client over a TCP socket
