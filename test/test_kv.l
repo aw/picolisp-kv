@@ -50,7 +50,7 @@
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
   (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-equal '(12345 (("name" . "abc") ("pid" . 12345))) (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0) "[LINDEX] Should return the info of the connected client")
+  (assert-equal '12345 (cdr (assoc "pid" (cadr (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0)))) "[LINDEX] Should return the info of the connected client")
   (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
   ]
 
