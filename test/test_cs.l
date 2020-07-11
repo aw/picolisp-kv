@@ -4,7 +4,7 @@
   (append (list './client.l "--port" *KV_port "--name" *Client_id "--pass" *KV_pass) (rest) ]
 
 [de tests-execute ()
-  #(call './client.l "--port" *KV_port "--name" *Client_id "--pass" *KV_pass "INFO")
+  (call './client.l "--port" *KV_port "--name" *Client_id "--pass" *KV_pass "INFO")
   (assert-equal (pack "OK " *Client_id) (in (test-client-cmd "INFO" "server") (line T))             "[CLIENT/SERVER] Test INFO command")
   (assert-kind-of 'String (in (test-client-cmd "LOLWUT") (line) (line T))                          "[CLIENT/SERVER] Test LOLWUT command")
   (assert-equal "OK" (in (test-client-cmd "SET" "testkey" "testdata") (line) (line T))             "[CLIENT/SERVER] Test SET command")
