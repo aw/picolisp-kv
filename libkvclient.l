@@ -51,6 +51,7 @@
     ["LOLWUT"     (out *Sock (pr (list "LOLWUT" (format (pop 'Cmdargs) ]
     ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
     ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
+    ["PING"       (out *Sock (pr (list "PING" (pop 'Cmdargs) ]
     ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
     ["SAVE"       (out *Sock (pr (list "SAVE") ]
     ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]

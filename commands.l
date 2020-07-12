@@ -20,6 +20,7 @@
       ["LOLWUT"     (kv-cmd-lolwut (cadr Request) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (; Request 3) ]
+      ["PING"       (kv-cmd-ping (cadr Request) ]
       ["RPUSH"      (kv-cmd-rpush (cadr Request) Key (; Request 3) ]
       ["SAVE"       (kv-save-db) ]
       ["SET"        (kv-cmd-set (cadr Request) (; Request 3) ]
@@ -85,6 +86,9 @@
         (let Result @
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
+
+[de kv-cmd-ping (Msg)
+  (if Msg @ "PONG") ]
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
