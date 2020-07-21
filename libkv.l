@@ -34,7 +34,7 @@
 [de kv-child-exit ()
   (kv-output "[child]=" *Pid " exiting")
   (kv-out-sibling "done")
-  (when (info *Pipe_child) (call 'rm *Pipe_child)) ]
+  (when (info *Pipe_child) (call 'rm "-f" *Pipe_child)) ]
 
 # Receive a message from a sibling over a named pipe and send it to the client
 [de kv-listen-child ()
@@ -232,6 +232,5 @@
       (kv-cleanup-kids)
       (kv-sibling)
       (kv-listen-loop)
-      (finally
-        (kv-child-exit)
-        (kv-child) ]
+      (kv-child)
+      (kv-child-exit) ]
