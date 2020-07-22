@@ -113,7 +113,6 @@
 
 # Remove the child's process ID from the list of connected clients
 [de kv-remove-client (Pid)
-  (kill Pid)
   (kv-stat "connected_clients" (filter '((N) (unless (= (car N) Pid) N)) *KV/%stats%/connected_clients))
   NIL ]                                  # NIL breaks from (kv-sibling-loop)
 
@@ -232,5 +231,6 @@
       (kv-cleanup-kids)
       (kv-sibling)
       (kv-listen-loop)
-      (kv-child)
-      (kv-child-exit) ]
+      (finally
+        (kv-child-exit)
+        (kv-child) ]
