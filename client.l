@@ -20,6 +20,7 @@
                ()
                ("  BGSAVE"                            "^I^IBGSAVE")
                ("  DEL key [key ..]"                  "^I^IDEL key1 key2 key3")
+               ("  EXISTS key [key ..]"               "^I^IEXISTS key1 key2 key3")
                ("  GET key"                           "^I^IGET key1")
                ("  INFO [section]"                    "^I^IINFO memory")
                ("  LINDEX key index"                  "^I^ILINDEX mylist 0")

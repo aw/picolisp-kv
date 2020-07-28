@@ -12,6 +12,7 @@
       ["BGSAVE"     (kv-bgsave-db *KV_aof) ]
       ["CLIENT"     (kv-cmd-client Child (cdr Request) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
+      ["EXISTS"     (kv-cmd-exists (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (cadr Request) ]
@@ -50,6 +51,11 @@
 [de kv-cmd-del (Key Elements)
   (if (and Key (not (pre? "%stats%/" Key)))
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
+      0 ]                                                      # return 0 if no key is specified
+
+[de kv-cmd-exists (Key Elements)
+  (if (and Key (not (pre? "%stats%/" Key)))
+      (cnt '((N) (unless (pre? "%stats%/" N) (kv-value N))) (conc (list Key) Elements))
       0 ]                                                      # return 0 if no key is specified
 
 [de kv-cmd-ident (Child Elements)

@@ -44,6 +44,7 @@
     ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
     ["CLIENT"     (out *Sock (pr (list "CLIENT" (pop 'Cmdargs) (pop 'Cmdargs) (format (pop 'Cmdargs) ]
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
+    ["EXISTS"     (out *Sock (pr (list "EXISTS" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
     ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
     ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
