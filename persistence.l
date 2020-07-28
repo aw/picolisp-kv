@@ -167,7 +167,7 @@
 
 # Save a write command to the append-only log file with a hash of the data
 [de kv-save-aof (Request Aof)
-  (when (member (car Request) '("DEL" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
+  (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
           (out (pack "+" Aof) (println (list (hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]

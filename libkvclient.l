@@ -46,6 +46,7 @@
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
     ["EXISTS"     (out *Sock (pr (list "EXISTS" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
+    ["GETSET"     (out *Sock (pr (list "GETSET" (pop 'Cmdargs) (pop 'Cmdargs) ]
     ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
     ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
     ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]

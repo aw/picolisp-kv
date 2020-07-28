@@ -7,24 +7,25 @@
     (kv-output "[msg]   to client: " (sym Result))
     (inc '*KV/%stats%/total_net_output_bytes (bytes Result))
 
-    (ifn  Result
-          (inc '*KV/%stats%/keyspace_misses)
-          (inc '*KV/%stats%/keyspace_hits)
-          (when *KV_persist (kv-save-aof Msg *KV_aof)) )       # save the request to a log file
+    (if Result
+        (inc '*KV/%stats%/keyspace_hits)
+        (inc '*KV/%stats%/keyspace_misses) )
+
+    (when *KV_persist (kv-save-aof Msg *KV_aof))               # save the request to a log file
 
     (out Pipe_child (pr (cons "message" Result) ]
 
 # Remove the child's process ID from the list of connected clients
 [de kv-remove-client (Pid)
   (kv-stat "connected_clients" (filter '((N) (unless (= (car N) Pid) N)) *KV/%stats%/connected_clients))
-  NIL ]                                  # NIL breaks from (kv-sibling-loop)
+  NIL ]                                                        # NIL breaks from (kv-sibling-loop)
 
 # Increment some statistics counters for the INFO command when there's an error
 [de kv-sibling-error (Pid Msg)
   (inc '*KV/%stats%/rejected_connections)
   (inc '*KV/%stats%/total_net_output_bytes (bytes Msg))
   (kv-remove-client Pid)
-  NIL ]                                  # NIL breaks from (kv-sibling-loop)
+  NIL ]                                                        # NIL breaks from (kv-sibling-loop)
 
 # Process the message depending on its type
 [de kv-sibling-message (Type Pid Msg)

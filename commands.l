@@ -14,6 +14,7 @@
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["EXISTS"     (kv-cmd-exists (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
+      ["GETSET"     (kv-cmd-getset (cadr Request) (; Request 3) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (cadr Request) ]
       ["LINDEX"     (kv-cmd-lindex Key (; Request 3) ]
@@ -108,6 +109,11 @@
 
 [de kv-cmd-get (Key)
   (kv-value Key) ]
+
+[de kv-cmd-getset (Key Value)
+  (let Result (kv-cmd-get Key)
+    (kv-cmd-set Key Value)
+    Result ]
 
 # COMMAND helpers
 [de kv-name (Name)
