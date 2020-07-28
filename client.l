@@ -24,7 +24,6 @@
                ("  INFO [section]"                    "^I^IINFO memory")
                ("  LINDEX key index"                  "^I^ILINDEX mylist 0")
                ("  LLEN key"                          "^I^ILLEN mylist")
-               ("  LOLWUT number"                     "^I^ILOLWUT 5")
                ("  LPOP key"                          "^I^ILPOP mylist")
                ("  LPOPRPUSH source destination"      "^ILPOPRPUSH mylist myotherlist")
                ("  RPUSH key element [element ..]"    "^IRPUSH mylist task1 task2 task3")
@@ -45,7 +44,8 @@
           (--pass     (setq *KV_pass (opt)))                   # required password
           (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
 
-      (finally (unless (=T @) (bye 1))
+      (finally
+        (unless (=T @) (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
                 (kv-print @)

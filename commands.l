@@ -17,7 +17,6 @@
       ["INFO"       (kv-cmd-info (cadr Request) ]
       ["LINDEX"     (kv-cmd-lindex Key (; Request 3) ]
       ["LLEN"       (kv-cmd-llen Key) ]
-      ["LOLWUT"     (kv-cmd-lolwut (cadr Request) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (; Request 3) ]
       ["PING"       (kv-cmd-ping (cadr Request) ]
@@ -102,11 +101,11 @@
         "OK" ]
 
 [de kv-cmd-get (Key)
-  (when Key (get (kv-value Key) ]
+  (kv-value Key) ]
 
 # COMMAND helpers
 [de kv-name (Name)
-  (car (str (pack "*KV/" Name) ]
+  (any (pack "*KV/" Name) ]
 
 [de kv-value (Name)
   (car (any (pack "*KV/" Name) ]

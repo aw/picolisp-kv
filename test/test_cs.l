@@ -6,7 +6,6 @@
 [de tests-execute ()
   (call './client.l "--port" *KV_port "--name" *Client_id "--pass" *KV_pass "INFO")
   (assert-equal (pack "OK " *Client_id) (in (test-client-cmd "INFO" "server") (line T))             "[CLIENT/SERVER] Test INFO command")
-  (assert-kind-of 'String (in (test-client-cmd "LOLWUT") (line) (line T))                          "[CLIENT/SERVER] Test LOLWUT command")
   (assert-equal "OK" (in (test-client-cmd "SET" "testkey" "testdata") (line) (line T))             "[CLIENT/SERVER] Test SET command")
   (assert-equal "testdata" (in (test-client-cmd "GET" "testkey") (line) (line T))                  "[CLIENT/SERVER] Test GET command")
   (assert-equal "no data" (in (test-client-cmd "GET" "nokey") (line) (line T))                     "[CLIENT/SERVER] Test NO DATA result")

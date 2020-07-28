@@ -48,7 +48,6 @@
     ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
     ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
     ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]
-    ["LOLWUT"     (out *Sock (pr (list "LOLWUT" (format (pop 'Cmdargs) ]
     ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
     ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
     ["PING"       (out *Sock (pr (list "PING" (pop 'Cmdargs) ]

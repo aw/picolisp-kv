@@ -101,7 +101,6 @@
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
   (assert-equal 22 (kv-process 12345 (list "LINDEX" "processkey" 1)) "[PROCESS] Should process the LINDEX command")
   (assert-equal 3 (kv-process 12345 (list "LLEN" "processkey")) "[PROCESS] Should process the LLEN command")
-  (assert-kind-of 'String (kv-process 12345 (list "LOLWUT" 1)) "[PROCESS] Should process the LOLWUT command")
   (assert-equal 11 (kv-process 12345 (list "LPOP" "processkey")) "[PROCESS] Should process the LPOP command")
   (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" "processkey" "processdest")) "[PROCESS] Should process the LPOPRPUSH command")
   (assert-kind-of 'String (kv-process 12345 (list "info" "server")) "[PROCESS] Should process a lowercase command")
@@ -123,15 +122,13 @@
   (kv-save-db-keys)
   (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return T if a temp DB exists after saving the keys")
   (assert-t (kv-write-db) "[BGSAVE] Should write the DB to disk")
-  (assert-equal 0 (kv-write-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
-  (assert-equal 0 (kv-write-aof T) "[BGSAVE] Should return 0 when truncating the AOF")
+  (assert-equal 0 (kv-rewrite-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
   ]
 
 [execute
   (prinl "^J  Testing Key/Value^J")
 
   '(assert-equal 0 (kv-cmd-llen (kv-name "nonexistant")) "[LLEN] Should return 0 if the key doesn't exist")
-  '(assert-kind-of 'String (kv-cmd-lolwut 1) "[LOLWUT] Should return a sparkline as a string")
   '(test-commands-del)
   '(test-commands-get-set)
   '(test-commands-ident)
