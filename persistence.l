@@ -56,7 +56,7 @@
   (kv-stat "rdb_last_cow_size" (car (info *KV_db_tmp)))
   (and
     (if (info *KV_db)
-        (call 'cp *KV_db (pack "." *KV_db ".old"))
+        (call 'cp *KV_db (pack (dirname *KV_db) "." (basename *KV_db) ".old"))
         T )
     (or (kv-output "====== Writing DB ======") T)
     (call 'mv *KV_db_tmp *KV_db) )

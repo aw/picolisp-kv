@@ -6,7 +6,7 @@
         Pipe_child (pil "tmp/" *PPid "/pipe_child_" Pid) )
 
     (wait 1)
-    (kv-output "[msg]   to client: " (sym Result))
+    (kv-output "[msg]    to child: " (sym Result))
     (inc '*KV/%stats%/total_net_output_bytes (bytes Result))
 
     (if Result

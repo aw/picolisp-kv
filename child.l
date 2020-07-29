@@ -11,13 +11,14 @@
 
 # Send a message to the sibling over a named pipe
 [de kv-out-sibling (Type . @)
+  (wait 1)                                                     # required or messages get lost
   (out *Pipe_sibling
     (pr (list Type *Pid (car (rest) ]
 
 # Receive a message from the client over the TCP socket
 [de kv-listen-sock ()
   (in *Sock
-    (while (rd)
+    (when (rd)
       (let Msg @
         (kv-output "[msg] from client: (pid: " *Pid ") " *Adr " " (sym Msg))
         (kv-out-sibling "message" Msg)

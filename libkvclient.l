@@ -68,14 +68,15 @@
 
 # Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
-  (in *Sock
-    (when (rd)
-      (let Result @
-        (if (cdr Result)
-            (case (car Result)
-              ("message" (cdr Result))                         # good response from the server
-              (T         "unknown data"))                      # bad response from the server
-            "no data" ) ]                                      # NIL response from the server
+  (abort 60
+    (in *Sock
+      (when (rd)
+        (let Result @
+          (if (cdr Result)
+              (case (car Result)
+                ("message" (cdr Result))                         # good response from the server
+                (T         "unknown data"))                      # bad response from the server
+              "no data" ) ]                                      # NIL response from the server
 
 # Authenticate to the server by hashing the password and validating the response
 [de kv-authenticate ()
