@@ -84,8 +84,8 @@
   (call 'rm "-f" *KV_aof_lock *KV_db_lock) ]
 
 # Obtain a UNIX timestamp
-[de kv-timestamp ()
-  (format (in (list 'date "+%s") (line T) ]
+[de kv-timestamp (Ns)
+  (in (list 'date (if Ns "+%s.%N" "+%s")) (line T) ]
 
 # Save the entire DB keyspace to a file
 [de kv-save-db (Bg)
@@ -140,8 +140,8 @@
     (while (read)
       (inc '*ERROR_LINE)
       (let Log @
-        (if (= (car Log) (hash (cadr Log)))
-            (kv-process *Pid (cadr Log))                   # replay the entry from the log
+        (if (= (cadr Log) (hash (caddr Log)))
+            (kv-process *Pid (caddr Log))                      # replay the entry from the log
             (quit "Mismatched AOF entry, incorrect hash") ) ) ) )
 
   (kv-stat "loading_aof" 0) ]
@@ -169,5 +169,5 @@
 [de kv-save-aof (Request Aof)
   (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
-          (out (pack "+" Aof) (println (list (hash Request) Request)))
+          (out (pack "+" Aof) (println (list (kv-timestamp T) (hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
