@@ -14,10 +14,10 @@
 
 [de kv-tmpfile-set ()
   (setq
-    *KV_aof_lock  (pack "." *KV_aof ".lock")
-    *KV_aof_tmp   (pack "." *KV_aof ".tmp")
-    *KV_db_lock   (pack "." *KV_db ".lock")
-    *KV_db_tmp    (pack "." *KV_db ".tmp") ]
+    *KV_aof_lock  (pack (dirname *KV_aof) "." (basename *KV_aof) ".lock")
+    *KV_aof_tmp   (pack (dirname *KV_aof) "." (basename *KV_aof) ".tmp")
+    *KV_db_lock   (pack (dirname *KV_db) "." (basename *KV_db) ".lock")
+    *KV_db_tmp    (pack (dirname *KV_db) "." (basename *KV_db) ".tmp") ]
 
 (kv-tmpfile-set)
 
