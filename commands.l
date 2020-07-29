@@ -98,8 +98,7 @@
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
-        (push1 (kv-name "keys") Key)                           # keep a list of all the keys
-        (mapc '((N) (queue Dst N)) Elements)
+        (kv-cmd-set Key (append (kv-value Key) Elements))
         (length (car Dst) ]
 
 [de kv-cmd-set (Key Value)
