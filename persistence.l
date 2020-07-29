@@ -41,14 +41,14 @@
     (one *KV/%stats%/aof_rewrite_in_progress)
     (when (info *KV_aof_tmp)
           (kv-output "====== Rewriting AOF ======")
-          (when (info *KV_aof)
-               (out (pack "+" *KV_aof_tmp) (in *KV_aof (echo))) )
-          (call 'mv *KV_aof_tmp *KV_aof)
+          (out (pack "+" *KV_aof_tmp) (in *KV_aof (echo)))  # Append the current AOF into the temporary AOF
+          (out *KV_aof (in *KV_aof_tmp (echo)))             # Copy the temporary AOF into the current AOF
+          (call 'rm "-f" *KV_aof_tmp)
           (kv-output "====== AOF saved ======") )
     (zero *KV/%stats%/aof_rewrite_in_progress) ]
 
 [de kv-remove-aof (Bg)
-  (unless Bg (call 'rm "-f" *KV_aof))
+  (unless Bg (out *KV_aof (rewind)))
   (call 'rm "-f" *KV_aof_tmp) ]
 
 # Write the new DB to disk
@@ -90,7 +90,7 @@
 # Save the entire DB keyspace to a file
 [de kv-save-db (Bg)
   (if (kv-locked?)
-      (kv-rewrite-aof)
+      (kv-rewrite-aof)                                         # restore the AOF if the DB is locked
       (out *KV_db_lock (prinl *Pid))
       (kv-output "[dbwriter]=" *Pid " Saving the DB to " *KV_db)
       (kv-stat "rdb_last_save_time" (kv-timestamp))
@@ -114,7 +114,8 @@
   (if (kv-locked?)
       @
       (kv-stat "rdb_last_save_time" (kv-timestamp))
-      (when (info Aof) (call 'mv Aof *KV_aof_tmp)) # move the AOF temporarily while we dump the DB to disk
+      (call 'cp *KV_aof *KV_aof_tmp)                           # make a copy of the AOF before we dump the DB to disk
+      (out Aof (rewind))                                       # wipe the contents of the AOF
       (unless (fork) (kv-save-db T) (bye))
       (kv-stat "rdb_last_bgsave_status" "Background saving started") ]
 
@@ -165,9 +166,9 @@
                   (kv-replay-aof Filename)
                   (kv-restore-db Filename) ]
 
-# Save a write command to the append-only log file with a hash of the data
-[de kv-save-aof (Request Aof)
+# Save a write command to the append-only log file with a timestamp and hash of the data
+[de kv-save-aof (Request Aof) # Aof is a file descriptor
   (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
-          (out (pack "+" Aof) (println (list (kv-timestamp T) (hash Request) Request)))
+          (out Aof (println (list (kv-timestamp T) (hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]

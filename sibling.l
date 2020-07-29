@@ -1,5 +1,7 @@
 # Process the message and send the result to the child over the named pipe
 [de kv-sibling-job (Pid Msg)
+  (when *KV_persist (kv-save-aof Msg *Aof_desc))               # save the request to a log file first
+
   (let (Result (kv-process Pid Msg)
         Pipe_child (pil "tmp/" *PPid "/pipe_child_" Pid) )
 
@@ -10,8 +12,6 @@
     (if Result
         (inc '*KV/%stats%/keyspace_hits)
         (inc '*KV/%stats%/keyspace_misses) )
-
-    (when *KV_persist (kv-save-aof Msg *KV_aof))               # save the request to a log file
 
     (out Pipe_child (pr (cons "message" Result) ]
 
@@ -59,11 +59,12 @@
   (ifn  (>= *Elapsed *KV_persist)
         (abort (- *KV_persist *Elapsed) (kv-listen-sibling))
         (setq *Start (time))                                   # restart the timer because it expired
-        (kv-bgsave-db *KV_aof) ]
+        (kv-bgsave-db *Aof_desc) ]
 
 # Start the loop which listens for new messages
 [de kv-sibling-loop ()
-  (use (*Start *Elapsed)
+  (use (*Aof_desc *Start *Elapsed)
+    (setq *Aof_desc (open *KV_aof))                            # obtain a file descriptor for the AOF
     (setq *Start (time))                                       # start the clock for the bgsave timer
     (loop
       (if *KV_persist
