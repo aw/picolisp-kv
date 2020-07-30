@@ -18,7 +18,7 @@
 # Receive a message from the client over the TCP socket
 [de kv-listen-sock ()
   (in *Sock
-    (when (rd)
+    (while (rd)
       (let Msg @
         (kv-output "[msg] from client: (pid: " *Pid ") " *Adr " " (sym Msg))
         (kv-out-sibling "message" Msg)

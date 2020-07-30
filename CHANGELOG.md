@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.1 (2020-07-30)
+
+  * Ensure clients can poll, by listening with (while) instead of (when)
+  * Update documentation with examples of 'CLIENT' commands
+
 ## 0.14.0 (2020-07-27)
 
   * Fix bug where client IP is not saved in client list

@@ -259,6 +259,21 @@ Background saving started
 ./client.l --pass yourpass CONVERT
 OK 25E3B970
 OK
+
+# Get the list of connected clients
+./client.l --pass yourpass CLIENT LIST
+OK 6FC82046
+id=2 pid=26377 name=6FC82046 addr=::1 fd=7
+id=1 pid=26370 name=783EABE1 addr=::1 fd=7
+
+# Get the current client ID
+./client.l --pass yourpass CLIENT ID
+OK 105ECBFE
+
+# Stop and kill a client connection
+./client.l --pass yourpass CLIENT KILL ID 1
+OK 32CA1C8A
+1
 ```
 
 # Notes and limitations
@@ -326,30 +341,30 @@ The idea is to have the **sibling** be the holder of all the **keys**. Every _"R
 
 Similar to [Redis](https://redis.io/topics/persistence), this database implements "snapshotting" (full memory dump to disk) and "AOF" (append-only log file), however both features are tightly coupled, which makes for a much better experience.
 
-* Persistence is disabled by default, but can be enabled with the `--persist N` parameter, where `N` is the number of seconds between each `BGSAVE` (background save to disk).
-* The database is stored in plaintext by default, but can be stored in binary with the `--binary` parameter. Binary format (PLIO) loads and saves _much_ quicker than plaintext, but it becomes difficult to debug a corrupt entry.
-* The AOF follows the _WAL_ approach, where each write command is first written to the AOF on disk, and then processed in the key/value memory store.
-* The AOF only stores log entries since the previous `SAVE` or `BGSAVE`, so it technically shouldn't grow too large or unmanageable.
-* The database snapshot on disk is the most complete and important data, and should be backed up regularly.
-* _fsync_ is not managed by the database, so the server admin must ensure AOF log writes are actually persisted to disk.
-* The AOF on-disk format is **always plaintext**, to allow easy debugging and repair of a corrupt entry.
-* The AOF is opened for writing when the server is started, and closed only when the server is stopped (similar to web server log files). This lowers overhead of appending to the log, but requires care to avoid altering it while the server is running.
-* The `SAVE` and `BGSAVE` commands can still be sent even if persistence is disabled. This will dump the in-memory data to disk as if persistence was enabled.
+  * Persistence is disabled by default, but can be enabled with the `--persist N` parameter, where `N` is the number of seconds between each `BGSAVE` (background save to disk).
+  * The database is stored in plaintext by default, but can be stored in binary with the `--binary` parameter. Binary format (PLIO) loads and saves _much_ quicker than plaintext, but it becomes difficult to debug a corrupt entry.
+  * The AOF follows the _WAL_ approach, where each write command is first written to the AOF on disk, and then processed in the key/value memory store.
+  * The AOF only stores log entries since the previous `SAVE` or `BGSAVE`, so it technically shouldn't grow too large or unmanageable.
+  * The database snapshot on disk is the most complete and important data, and should be backed up regularly.
+  * _fsync_ is not managed by the database, so the server admin must ensure AOF log writes are actually persisted to disk.
+  * The AOF on-disk format is **always plaintext**, to allow easy debugging and repair of a corrupt entry.
+  * The AOF is opened for writing when the server is started, and closed only when the server is stopped (similar to web server log files). This lowers overhead of appending to the log, but requires care to avoid altering it while the server is running.
+  * The `SAVE` and `BGSAVE` commands can still be sent even if persistence is disabled. This will dump the in-memory data to disk as if persistence was enabled.
 
 ## How persistence is implemented
 
 Here we'll assume persistence was previously enabled and data has already been written and saved to disk.
 
-1. On server start, some memory is pre-allocated according to the DB's file size.
-2. The DB is then fully restored to memory
-3. If the AOF contains some entries, it is fully replayed to memory
-4. The DB is saved once more to disk and the AOF gets wiped
-5. A timer is started to perform periodic background DB saves
-6. The AOF is opened for writes, and every new client connection sends the command to the AOF
-7. When a `BGSAVE` (non-blocking) command is received, a temporay copy of the AOF is made, the current AOF is wiped, and a background process is forked to save the DB to disk
-8. When a `SAVE` (blocking) command is received, a the in-memory DB is saved to disk and the AOF is wiped.
-9. A backup of the DB file is always made before overwriting the current DB file.
-10. To help handle concurrency and persistence, temporary files are named `.kv.db.lock`, `.kv.db.tmp`, `.kv.aof.lock`, and `.kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
+  1. On server start, some memory is pre-allocated according to the DB's file size.
+  2. The DB is then fully restored to memory
+  3. If the AOF contains some entries, it is fully replayed to memory
+  4. The DB is saved once more to disk and the AOF gets wiped
+  5. A timer is started to perform periodic background DB saves
+  6. The AOF is opened for writes, and every new client connection sends the command to the AOF
+  7. When a `BGSAVE` (non-blocking) command is received, a temporay copy of the AOF is made, the current AOF is wiped, and a background process is forked to save the DB to disk
+  8. When a `SAVE` (blocking) command is received, the in-memory DB is saved to disk and the AOF is wiped.
+  9. A backup of the DB file is always made before overwriting the current DB file.
+  10. To help handle concurrency and persistence, temporary files are named `.kv.db.lock`, `.kv.db.tmp`, `.kv.aof.lock`, and `.kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
 
 ## AOF format
 
@@ -362,11 +377,11 @@ Here are two separate entries in a typical AOF:
 ("1596099059.683596840" 57240 ("RPUSH" "yourtestlist" ("seven" "eight" "nine")))
 ```
 
-Each line is a PicoLisp list with only 3 columns:
+Each line is a PicoLisp list with only 3 items:
 
-* Column 1: `String` Unix timestamp with nanoseconds for when the entry was created
-* Column 2: `Integer` Non-cryptographically secure hash (CRC) of the command and its arguments
-* Column 3: `List` Command name, first argument, and subsequent arguments
+  * Item 1: `String` Unix timestamp with nanoseconds for when the entry was created
+  * Item 2: `Integer` Non-cryptographically secure hash (CRC) of the command and its arguments
+  * Item 3: `List` Command name, first argument, and subsequent arguments
 
 When replaying the AOF, the server will ensure the hash of command and arguments match, to guarantee the data is intact. Replaying an AOF can be slow, depending on the number of keys/values.
 
@@ -392,10 +407,10 @@ Each line is a PicoLisp list with the key in the `(car)`, and values in the `(ca
 
 ## Differences from Redis
 
-* Unlike _Redis_, persistence only allows specifying a time interval between each `BGSAVE`. Since the AOF is **always enabled**, it's not necessary to "save after N changes", so the config is much simpler.
-* Log rewriting is not something that "must be done", because chances are the AOF will never grow too large. Of course that depends on the number of changes occurring between each `BGSAVE`, but even then the AOF is wiped when a `BGSAVE` is initiated (and restored/rewritten if the DB happened to be locked).
-* The DB snapshot is used to reconstruct the dataset in memory, not the AOF. The AOF is only used to replay the commands since the last DB save, which is much faster and more efficient, particularly when using `--binary`.
-* There is no danger of _losing data_ when switching from `RDB` to `AOF`, because such a concept doesn't even exist.
+  * Unlike _Redis_, persistence only allows specifying a time interval between each `BGSAVE`. Since the AOF is **always enabled**, it's not necessary to "save after N changes", so the config is much simpler.
+  * Log rewriting is not something that "must be done", because chances are the AOF will never grow too large. Of course that depends on the number of changes occurring between each `BGSAVE`, but even then the AOF is wiped when a `BGSAVE` is initiated (and restored/rewritten if the DB happened to be locked).
+  * The DB snapshot is used to reconstruct the dataset in memory, not the AOF. The AOF is only used to replay the commands since the last DB save, which is much faster and more efficient, particularly when using `--binary`.
+  * There is no danger of _losing data_ when switching from `RDB` to `AOF`, because such a concept doesn't even exist.
 
 # Testing
 

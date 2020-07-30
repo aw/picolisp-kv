@@ -1,6 +1,6 @@
 [de APP_INFO
   ("name"      "picolisp-kv")
-  ("version"   "0.13.0")
+  ("version"   "0.14.1")
   ("summary"   "Redis-inspired in-memory key/value store written in PicoLisp")
   ("source"    "https://github.com/aw/picolisp-kv")
   ("author"    "Alexander Williams")
