@@ -19,6 +19,7 @@
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
                ("  BGSAVE"                            "^I^IBGSAVE")
+               ("  CONVERT"                           "^I^ICONVERT")
                ("  DEL key [key ..]"                  "^I^IDEL key1 key2 key3")
                ("  EXISTS key [key ..]"               "^I^IEXISTS key1 key2 key3")
                ("  GET key"                           "^I^IGET key1")

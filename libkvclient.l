@@ -43,6 +43,7 @@
   (case (uppc (pop 'Cmdargs))
     ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
     ["CLIENT"     (out *Sock (pr (list "CLIENT" (pop 'Cmdargs) (pop 'Cmdargs) (format (pop 'Cmdargs) ]
+    ["CONVERT"    (out *Sock (pr (list "CONVERT") ]
     ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
     ["EXISTS"     (out *Sock (pr (list "EXISTS" (pop 'Cmdargs) Cmdargs) ]
     ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]

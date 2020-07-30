@@ -11,6 +11,7 @@
     (case (uppc (car Request))
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
       ["CLIENT"     (kv-cmd-client Child (cdr Request) ]
+      ["CONVERT"    (kv-cmd-convert) ]
       ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
       ["EXISTS"     (kv-cmd-exists (cadr Request) (; Request 3) ]
       ["GET"        (kv-cmd-get (cadr Request) ]
@@ -48,6 +49,13 @@
 
 [de kv-cmd-client-list ()
   (glue "^J" (mapcar '((N) (glue " " (mapcar '((S) (pack (car S) "=" (cdr S))) (cadr N)))) (get (kv-value "%stats%/connected_clients") ]
+
+# convert a database to/from plaintext<->binary
+[de kv-cmd-convert ()
+  (when *KV_persist
+        (setq *KV_binary (onOff *KV_binary))
+        (setq *KV_db (glue "." (append (head -1 (split (chop *KV_db) ".")) (if *KV_binary '(("b" "i" "n")) '(("d" "b"))))))
+        (kv-save-db) ]
 
 [de kv-cmd-del (Key Elements)
   (if (and Key (not (pre? "%stats%/" Key)))
@@ -158,6 +166,7 @@
 
 [de kv-info-persistence ()
   (list
+    (cons "db_format" (if *KV_binary "binary" "plaintext"))
     (cons "loading" *KV/%stats%/loading)
     (cons "rdb_changes_since_last_save" (if (info *KV_aof) (lines *KV_aof) 0))
     (cons "rdb_bgsave_in_progress" (if (info *KV_db_lock) 1 0))
