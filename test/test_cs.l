@@ -12,6 +12,8 @@
   (assert-nil (call './client.l "--port" *KV_port "--name" *Client_id "--pass" *KV_pass "UNKNOWN")    "[CLIENT/SERVER] Test UNKNOWN command")
   (assert-nil (call './client.l "--port" *KV_port "--name" *Client_id "--pass" "badpass" "GET")       "[CLIENT/SERVER] Test AUTH with bad password")
   (assert-kind-of 'Number (in (test-client-cmd "GET" "%stats%/keyspace_hits") (line) (format (line T))) "[CLIENT/SERVER] Test STATS command")
+  (assert-includes (pack "name=" *Client_id " addr=") (in (test-client-cmd "CLIENT" "LIST") (line) (line T)) "[CLIENT/SERVER] Test CLIENT LIST command")
+  (assert-kind-of 'Number (in (test-client-cmd "CLIENT" "ID") (line) (format (line T))) "[CLIENT/SERVER] Test CLIENT ID command")
   ]
 
 [de tests-client-server ()
