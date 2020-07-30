@@ -7,10 +7,10 @@
 
 [de APP_HELP
   ("usage"     "./server.l --pass <pass> [options]")
-  ("example"   "./server.l --pass foobared --port 6378 --verbose --persist 60'^J")
+  ("example"   "./server.l --pass foobared --port 6378 --verbose --persist 60^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
-               ("--binary"                "Store data in binary format instead of text (default: text)")
+               ("--binary"                "Store data in binary format instead of text (default: plaintext)")
                ("--pass <password>"       "Password used by clients to access the server (required)")
                ("--persist <seconds>"     "Number of seconds between database persists to disk (default: disabled)")
                ("--port <port>"           "TCP listen port for communication with clients (default: 6378)")

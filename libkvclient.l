@@ -13,6 +13,7 @@
   *KV_clientid  (hex (abs (rand)))
   *KV_port      6378
   *KV_pass      NIL
+  *KV_abort     60                                       # max time (in seconds) to wait for a message
   *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E" ) # for server handshake, do not change
 
 (off *KV_poll)
@@ -69,7 +70,7 @@
 
 # Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
-  (abort 60
+  (abort *KV_abort
     (in *Sock
       (when (rd)
         (let Result @

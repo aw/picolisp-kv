@@ -19,6 +19,7 @@
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
                ("  BGSAVE"                            "^I^IBGSAVE")
+               ("  CLIENT ID|KILL|LIST id [id ..]"    "^ICLIENT LIST")
                ("  CONVERT"                           "^I^ICONVERT")
                ("  DEL key [key ..]"                  "^I^IDEL key1 key2 key3")
                ("  EXISTS key [key ..]"               "^I^IEXISTS key1 key2 key3")
@@ -29,6 +30,7 @@
                ("  LLEN key"                          "^I^ILLEN mylist")
                ("  LPOP key"                          "^I^ILPOP mylist")
                ("  LPOPRPUSH source destination"      "^ILPOPRPUSH mylist myotherlist")
+               ("  PING [message]"                    "^I^IPING hello")
                ("  RPUSH key element [element ..]"    "^IRPUSH mylist task1 task2 task3")
                ("  SAVE"                              "^I^ISAVE")
                ("  SET key value"                     "^I^ISET mykey hello") ]
@@ -40,6 +42,7 @@
       (kv-show-help)
       (while (opt)
         (case @
+          (--help     (kv-show-help) (bye 1))
           (--host     (setq *KV_host (opt)))                   # default 'localhost'
           (--port     (setq *KV_port (opt)))                   # default '6378'
           (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
