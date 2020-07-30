@@ -124,6 +124,9 @@
   (kv-stat "loading" 1)
   (kv-stat "rdb_last_cow_size" (car (info Filename)))
 
+  # TODO: currently allocating 5x more than DB filesize, must validate
+  (gc (+ 1 (* 5 (/ (kv-value "%stats%/rdb_last_cow_size") 1024 1024)))) # pre-allocate enough memory for the entire DB
+
   (in Filename
     (while (if *KV_binary (rd) (read))
       (inc '*ERROR_LINE)
