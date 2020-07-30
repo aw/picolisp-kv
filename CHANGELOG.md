@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2 (2020-07-30)
+
+  * Ensure clients actually exit when a 'CLIENT KILL' command is received
+
 ## 0.14.1 (2020-07-30)
 
   * Ensure clients can poll, by listening with (while) instead of (when)

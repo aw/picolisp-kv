@@ -44,7 +44,7 @@
 
 [de kv-cmd-client-kill (Filter Arg)
   (case (uppc Filter)
-    ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N)) (link T))) (get (kv-value "%stats%/connected_clients") ]
+    ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N) T) (link T))) (get (kv-value "%stats%/connected_clients") ]
     (T      0) ]
 
 [de kv-cmd-client-list ()

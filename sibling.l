@@ -16,7 +16,8 @@
     (out Pipe_child (pr (cons "message" Result) ]
 
 # Remove the child's process ID from the list of connected clients
-[de kv-remove-client (Pid)
+[de kv-remove-client (Pid Kill)
+  (when Kill (kill Pid))
   (kv-stat "connected_clients" (filter '((N) (unless (= (car N) Pid) N)) *KV/%stats%/connected_clients))
   NIL ]                                                        # NIL breaks from (kv-sibling-loop)
 
