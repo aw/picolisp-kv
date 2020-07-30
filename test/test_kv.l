@@ -7,6 +7,8 @@
   (assert-nil (kv-cmd-get (kv-name "nonexistant")) "[GET] Should return NIL if the key doesn't exist")
   (assert-equal "OK" (kv-cmd-set "testkey" "testvalue") "[SET] Should set a key and return OK")
   (assert-equal "testvalue" (kv-cmd-get "testkey") "[GET] Should return the value of the key")
+  (assert-equal "testvalue" (kv-cmd-getset "testkey" "newvalue") "[GETSET] Should return the old value")
+  (assert-equal "newvalue" (kv-cmd-get "testkey") "[GETSET] Should return the new value")
   ]
 
 [de test-commands-rpush ()
@@ -122,11 +124,24 @@
   (assert-nil (kv-locked?) "[BGSAVE] Should return NIL if the DB is not locked")
   (assert-kind-of 'String (kv-timestamp) "[BGSAVE] Should return a UNIX timestamp")
   (kv-save-db-keys)
-  (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return T if a temp DB exists after saving the keys")
+  (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return a list if a temp DB exists after saving the keys")
   (assert-t (kv-write-db) "[BGSAVE] Should write the DB to disk")
   (assert-equal 0 (kv-rewrite-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
   ]
 
+[de test-commands-exists ()
+  (kv-cmd-rpush "existlist" (kv-name "existlist") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (kv-cmd-rpush "existlist2" (kv-name "existlist2") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
+  (assert-equal 1 (kv-cmd-exists "existlist") "[EXISTS] Should return 1 if the key exists")
+  (assert-equal 0 (kv-cmd-exists "nonexists") "[EXISTS] Should return 0 if the key doesn't exist")
+  (assert-equal 2 (kv-cmd-exists "existlist" '("existlist2")) "[EXISTS] Should return 2 if the two keys exist")
+  (assert-equal 3 (kv-cmd-exists "existlist" '("existlist" "existlist2")) "[EXISTS] Should return 3 if the two keys exist and one is a duplicate")
+  ]
+
+[de test-commands-ping ()
+  (assert-equal "PONG" (kv-cmd-ping) "[PING] Should return PONG")
+  (assert-equal "Hello" (kv-cmd-ping "Hello") "[PING] Should return Hello")
+  ]
 [execute
   (prinl "^J  Testing Key/Value^J")
 
@@ -142,4 +157,6 @@
   '(test-commands-stats-failures)
   '(test-commands-process)
   '(test-commands-bgsave)
+  '(test-commands-exists)
+  '(test-commands-ping)
   ]

@@ -19,7 +19,7 @@
 
 (kill (car (kids))) # ensure the server is stopped
 
-(wait 5000)
+(wait 1000)
 
 (setq *KV_port (rand 40001 49999))
 
