@@ -54,7 +54,7 @@
 [de kv-cmd-convert ()
   (when *KV_persist
         (setq *KV_binary (onOff *KV_binary))
-        (setq *KV_db (glue "." (append (head -1 (split (chop *KV_db) ".")) (if *KV_binary '(("b" "i" "n")) '(("d" "b"))))))
+        (setq *KV_db (pack (dirname *KV_db) (glue "." (append (head -1 (split (chop *KV_db) ".")) (if *KV_binary '(("b" "i" "n")) '(("d" "b")))))))
         (kv-save-db) ]
 
 [de kv-cmd-del (Key Elements)
