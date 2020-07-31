@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.1 (2020-07-31)
+
+  * Move the global list of all keys to '%stats%/keys' so it can't be deleted or modified
+  * Allow 'EXISTS' command on all keys including keys prefixed with '%stats%/'
+
 ## 0.15.0 (2020-07-31)
 
   * Consolidate all server library code into one file: libkv.l

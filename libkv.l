@@ -102,8 +102,8 @@
       0 ]                                                      # return 0 if no key is specified
 
 [de kv-cmd-exists (Key Elements)
-  (if (and Key (not (pre? "%stats%/" Key)))
-      (cnt '((N) (unless (pre? "%stats%/" N) (kv-value N))) (conc (list Key) Elements))
+  (if Key
+      (cnt '((N) (kv-value N)) (conc (list Key) Elements))
       0 ]                                                      # return 0 if no key is specified
 
 [de kv-cmd-ident (Child Elements)
@@ -150,7 +150,7 @@
 
 [de kv-cmd-set (Key Value)
   (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
-        (push1 (kv-name "keys") Key)                           # keep a list of all the keys
+        (push1 (kv-name "%stats%/keys") Key)                   # keep a list of all the keys
         "OK" ]
 
 [de kv-cmd-get (Key)
@@ -196,6 +196,7 @@
 [de kv-info-memory ()
   (make
     (link
+      (cons "total_keys" (length *KV/%stats%/keys))
       (cons "used_memory" (* (heap) 1024 1024))
       (cons "used_memory_human" (pack (heap) "M"))
       (cons "used_memory_startup" *KV_startup_memory) )
@@ -285,7 +286,7 @@
 # Write all the known keys to a temporary DB file
 [de kv-save-db-keys ()
   (out *KV_db_tmp
-    (mapcar kv-save-data (kv-cmd-get "keys") ]
+    (mapcar kv-save-data (kv-cmd-get "%stats%/keys") ]
 
 # Perform some maintenance tasks when save ends
 [de kv-save-cleanup ()
