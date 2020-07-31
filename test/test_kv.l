@@ -16,7 +16,7 @@
   (assert-nil (kv-cmd-rpush "tasks") "[RPUSH] Should return NIL if only 1 key is provided")
   (assert-nil (kv-cmd-rpush "tasks" (kv-name "tasks")) "[RPUSH] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-rpush "tasks" (kv-name "tasks") "element 1") "[RPUSH] Should return NIL if the elements aren't a list")
-  (kv-cmd-del "%stats%/keys")
+  (off *KV/%stats%/keys)
   (assert-equal 5 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[RPUSH] Should return the length of the new list")
   (assert-equal 7 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task6" "task7")) "[RPUSH] Should return the extended length of the list")
   (assert-equal "task1" (kv-cmd-lindex (kv-name "tasks") 0) "[LINDEX] Should return the key at index 0")
