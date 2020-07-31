@@ -18,9 +18,6 @@
 
 (off *KV_poll)
 
-# LOAD
-(load "module.l")
-
 # HELPERS
 # Send error message to STDERR
 [de kv-throw (Error)

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.0 (2020-07-31)
+
+  * Consolidate all server library code into one file: libkv.l
+  * Fix loading of module.l
+  * Simplify storage location and settings for temporary/lock files
+  * Explicitly make the child exit when it's finished processing
+
 ## 0.14.2 (2020-07-30)
 
   * Ensure clients actually exit when a 'CLIENT KILL' command is received

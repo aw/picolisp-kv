@@ -35,7 +35,7 @@
                ("  SAVE"                              "^I^ISAVE")
                ("  SET key value"                     "^I^ISET mykey hello") ]
 
-(chdir (car (file)) (load "libkvclient.l" "clihelpers.l"))
+(chdir (car (file)) (load "libkvclient.l" "clihelpers.l" "module.l"))
 
 # START
 [ifn  (argv)

@@ -21,8 +21,7 @@
 # Enable storing the database in binary format (PLIO)
 [de kv-enable-binary ()
   (on *KV_binary)
-  (setq *KV_db "kv.bin")
-  (kv-tmpfile-set) ]
+  (setq *KV_db "kv.bin") ]
 
 # START
 (ifn  (argv)

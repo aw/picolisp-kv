@@ -364,7 +364,7 @@ Here we'll assume persistence was previously enabled and data has already been w
   7. When a `BGSAVE` (non-blocking) command is received, a temporay copy of the AOF is made, the current AOF is wiped, and a background process is forked to save the DB to disk
   8. When a `SAVE` (blocking) command is received, the in-memory DB is saved to disk and the AOF is wiped.
   9. A backup of the DB file is always made before overwriting the current DB file.
-  10. To help handle concurrency and persistence, temporary files are named `.kv.db.lock`, `.kv.db.tmp`, `.kv.aof.lock`, and `.kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
+  10. To help handle concurrency and persistence, temporary files are named `kv.db.lock`, `kv.db.tmp`, `kv.aof.lock`, and `kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
 
 ## AOF format
 
@@ -394,7 +394,7 @@ When replaying the AOF, the server will ensure the hash of command and arguments
 
 ## DB format
 
-The DB is stored by default in the `kv.db` file as defined by `*KV_db`. When backed up, it is named `.kv.db.old`.
+The DB is stored by default in the `kv.db` file as defined by `*KV_db`. When backed up, the new filename contains the suffix `.old`.
 
 Here are two separate entries in a typical DB:
 
