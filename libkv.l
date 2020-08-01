@@ -150,16 +150,16 @@
   (let Src (kv-name Key)
     (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
 
-[de kv-cmd-lrange (Key Start Stop)
-  (let Src (kv-name Key)
-    (when (and Src Start Stop (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
-          (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
-
 [de kv-cmd-lpoprpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-lpop Src))
         (let Result @
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
+
+[de kv-cmd-lrange (Key Start Stop)
+  (let Src (kv-name Key)
+    (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+          (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))

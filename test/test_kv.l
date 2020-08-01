@@ -20,6 +20,7 @@
   (off *KV/tasks)
   (assert-equal 5 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[RPUSH] Should return the length of the new list")
   (assert-equal 7 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task6" "task7")) "[RPUSH] Should return the extended length of the list")
+  (assert-equal '("task1" "task2") (kv-cmd-lrange "tasks" 0 1) "[LRANGE] Should return the keys in the range 0 1")
   (assert-equal "task1" (kv-cmd-lindex "tasks" 0) "[LINDEX] Should return the key at index 0")
   (assert-equal "task5" (kv-cmd-lindex "tasks" 4) "[LINDEX] Should return the key at index 5")
   (assert-equal "task7" (kv-cmd-lindex "tasks" -1) "[LINDEX] Should return the last key")
@@ -110,6 +111,12 @@
   (assert-equal 6 (kv-cmd-lpoprpush "inkey" "outkey") "[LPOPRPUSH] Should return the element being popped (again)")
   ]
 
+[de test-commands-lrange ()
+  (assert-nil (kv-cmd-lrange) "[LRANGE] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-lrange "nonexistant") "[LRANGE] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-lrange "inkey" -1 -2) "[LRANGE] Should return NIL if the range has a negative number")
+  ]
+
 [de test-commands-rpoplpush ()
   (off *KV/inkey)
   (off *KV/outkey)
@@ -142,6 +149,7 @@
   (assert-equal "OK" (kv-process 12345 (list "SET" '("processkey2" "processvalue"))) "[PROCESS] Should process the SET command")
   (assert-equal "processvalue" (car (kv-process 12345 (list "GET" '("processkey2")))) "[PROCESS] Should process the GET command")
   (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkey" 11 22 33))) "[PROCESS] Should process the RPUSH command")
+  (assert-equal '(11) (kv-process 12345 (list "LRANGE" '("processkey" "0" "0"))) "[PROCESS] Should process the LRANGE command")
   (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
   (assert-equal 22 (kv-process 12345 (list "LINDEX" '("processkey" "1"))) "[PROCESS] Should process the LINDEX command")
@@ -200,6 +208,7 @@
   '(test-commands-lpoprpush)
   '(test-commands-rpoplpush)
   '(test-commands-lpush)
+  '(test-commands-lrange)
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)
