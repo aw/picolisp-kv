@@ -399,7 +399,7 @@
 # Receive a message from a sibling over a named pipe and send it to the client
 [de kv-listen-child ()
   (in *Pipe_child
-    (when (rd) (kv-out-client "message" (cdr @) ]
+    (when (rd) (out *Sock (pr @) ]                             # pipe the message as-is to the client
 
 # Send a message to the sibling over a named pipe
 [de kv-out-sibling (Type . @)
