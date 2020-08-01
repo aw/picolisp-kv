@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -67,6 +67,7 @@
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
       ["LRANGE"     (kv-cmd-lrange (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
       ["LREM"       (kv-cmd-lrem (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
+      ["LSET"       (kv-cmd-lset (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -171,6 +172,11 @@
             (T            (do Count (del Element Src))) )
           (- Len (length (kv-value Key))) )
         0 ]
+
+[de kv-cmd-lset (Key Index Element)
+  (let Src (kv-name Key)
+    (when (and Src (lst? (kv-value Key)) (ge0 Index) (< Index (length (kv-value Key)))  (not (pre? "*KV/%stats%/" Src)))
+          (kv-cmd-set Key (place (+ 1 Index) (kv-value Key) Element) ]
 
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))

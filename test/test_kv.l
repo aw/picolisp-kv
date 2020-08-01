@@ -31,6 +31,10 @@
   (assert-equal "task1" (kv-cmd-lpop "tasks") "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   (assert-equal 1 (kv-cmd-lrem "tasks" 3 "task3") "[LREM] Should return the number of keys removed from the task list")
+  (assert-equal 5 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys in the keys list (shortened)")
+  (assert-equal "OK" (kv-cmd-lset "tasks" 4 "task8") "[LSET] Should return OK if the task value was replaced")
+  (assert-nil (kv-cmd-lset "tasks" 10 "task8") "[LSET] Should return NIL if the task value can't be replaced")
+  (assert-equal "task8" (kv-cmd-lindex "tasks" 4) "[LINDEX] Should return the value of the key in the keys list")
   ]
 
 [de test-commands-lpush ()
@@ -122,6 +126,12 @@
   (assert-nil (kv-cmd-lrem) "[LREM] Should return NIL if no key is provided")
   (assert-nil (kv-cmd-lrem "nonexistant") "[LREM] Should return NIL if the key doesn't exist")
   (assert-nil (kv-cmd-lrem "inkey" -1 "value") "[LREM] Should return NIL if the count has a negative number")
+  ]
+
+[de test-commands-lset ()
+  (assert-nil (kv-cmd-lset) "[LSET] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-lset "nonexistant") "[LSET] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-lset "inkey" -1 "value" "one") "[LSET] Should return NIL if the index has a negative number")
   ]
 
 [de test-commands-rpoplpush ()
