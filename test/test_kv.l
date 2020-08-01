@@ -117,7 +117,6 @@
   (kv-save-db-keys)
   (kv-write-db)
   (assert-equal 0 (kv-restore "DB" *KV_db) "[BGSAVE] Should return 0 when restoring the DB")
-  (assert-equal 0 (kv-restore "AOF" *KV_aof) "[BGSAVE] Should return 0 when restoring the AOF")
   (out *KV_db_lock (prinl "12345"))
   (assert-equal "Error: DB is locked for writing" (kv-locked?) "[BGSAVE] Should return an error if the DB is locked")
   (call 'rm "-f" *KV_db_lock)
