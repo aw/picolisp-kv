@@ -65,6 +65,7 @@
       ["LPOP"       (kv-cmd-lpop (caadr Request) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush (caadr Request) (cadadr Request) ]
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
+      ["LRANGE"     (kv-cmd-lrange (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -148,6 +149,11 @@
 [de kv-cmd-lpop (Key)
   (let Src (kv-name Key)
     (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
+
+[de kv-cmd-lrange (Key Start Stop)
+  (let Src (kv-name Key)
+    (when (and Src Start Stop (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+          (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-lpop Src))
