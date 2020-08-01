@@ -66,6 +66,7 @@
       ["LPOPRPUSH"  (kv-cmd-lpoprpush (caadr Request) (cadadr Request) ]
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
       ["LRANGE"     (kv-cmd-lrange (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
+      ["LREM"       (kv-cmd-lrem (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -160,6 +161,16 @@
   (let Src (kv-name Key)
     (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
           (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
+
+[de kv-cmd-lrem (Key Count Element)
+  (let Src (kv-name Key)
+    (if (and Src Count Element (ge0 Count) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+        (let Len (length (kv-value Key))
+          (cond
+            ((= 0 Count)  (del Element Src T))
+            (T            (do Count (del Element Src))) )
+          (- Len (length (kv-value Key))) )
+        0 ]
 
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
