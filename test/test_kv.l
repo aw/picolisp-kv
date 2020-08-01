@@ -123,9 +123,9 @@
   ]
 
 [de test-commands-lrem ()
-  (assert-nil (kv-cmd-lrem) "[LREM] Should return NIL if no key is provided")
-  (assert-nil (kv-cmd-lrem "nonexistant") "[LREM] Should return NIL if the key doesn't exist")
-  (assert-nil (kv-cmd-lrem "inkey" -1 "value") "[LREM] Should return NIL if the count has a negative number")
+  (assert-equal 0 (kv-cmd-lrem) "[LREM] Should return NIL if no key is provided")
+  (assert-equal 0 (kv-cmd-lrem "nonexistant") "[LREM] Should return NIL if the key doesn't exist")
+  (assert-equal 0 (kv-cmd-lrem "inkey" -1 "value") "[LREM] Should return NIL if the count has a negative number")
   ]
 
 [de test-commands-lset ()
@@ -176,6 +176,7 @@
   (assert-equal 3 (kv-process 12345 (list "LPUSH" '("processkey3" 44 55 66))) "[PROCESS] Should process the LPUSH command")
   (assert-equal 33 (kv-process 12345 (list "RPOP" '("processkey"))) "[PROCESS] Should process the RPOP command")
   (assert-equal 1 (kv-process 12345 (list "LREM" '("processkey3" "2" 44))) "[PROCESS] Should process the LREM command")
+  (assert-equal "OK" (kv-process 12345 (list "LSET" '("processkey3" "1" "77"))) "[PROCESS] Should process the LSET command")
   (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 
@@ -227,6 +228,8 @@
   '(test-commands-rpoplpush)
   '(test-commands-lpush)
   '(test-commands-lrange)
+  '(test-commands-lrem)
+  '(test-commands-lset)
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)
