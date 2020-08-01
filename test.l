@@ -24,12 +24,14 @@
 (setq *KV_port (rand 40001 49999))
 
 # run the client/server tests without persistence
+#{ # NOTE: disabled integration tests
 (chdir (pack (car (file)) "test/")
-  (call 'rm "-f" *KV_db (pack "." *KV_db ".old") *KV_aof *KV_aof_lock) # cleanup first
+  (call 'rm "-f" *KV_db (pack *KV_db ".old") *KV_aof *KV_aof_lock) # cleanup first
   (unless (fork)
     (exec '../server.l "--pass" *KV_pass "--port" *KV_port) )
   (mapcar load (filter '((N) (sub? "test_cs" N)) (dir "."))) )
 
 (kill (car (kids))) # ensure the server is stopped
+}#
 
 (report)

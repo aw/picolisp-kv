@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.16.0 (2020-08-17)
+
+  ### New features
+
+  * [commands] Add the following Hash COMMANDS: `HDEL, HEXISTS, HGET, HGETALL, HKEYS, HLEN, HMGET, HSET, HSTRLEN, HVALS`
+  * [commands] Add the following List COMMANDS: `LPUSH, LRANGE, LREM, LSET, LTRIM, RPOP, RPOPLPUSH`
+  * [commands] Add the following String COMMANDS: `APPEND, MSET, MGET, STRLEN`
+  * [client] Add `--commands` to view the list of all commands
+  * [client] Add `--encrypt` and `--decrypt` options to encrypt/decrypt data using a GPG keypair
+  * [client] Add `--` option to read last argument data from STDIN
+
+  ### Bug fixes
+
+  * Ensure listening on a socket will abort after `*KV_abort` seconds
+  * Reading frorm a socket shouldn't return "no data" or "unknown data" if there's no data. It should just print an empty string.
+  * Errors should throw/raise an error with the message, for the client to parse
+  * Perform more validations on individual commands, ex: ensuring a Key is a list, etc
+  * Temporarily disabled integrations tests because they cause false/positives
+
+  ### Misc changes
+
+  * Change the way IDENT and AUTH is performed in client and server
+  * Client doesn't print "OK <name>" anymore for every command
+  * Simplify much of the kv command processing code
+
 ## 0.15.1 (2020-07-31)
 
   * Move the global list of all keys to '%stats%/keys' so it can't be deleted or modified

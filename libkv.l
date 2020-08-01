@@ -21,7 +21,8 @@
   *KV_aof_lock  (tmp "kv.aof.lock")
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
-  *KV_db_tmp    (tmp "kv.db.tmp") )
+  *KV_db_tmp    (tmp "kv.db.tmp")
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "LTRIM" "MSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -48,47 +49,76 @@
 ###
 
 [de kv-process (Child Request)
-  (let Key (when (cadr Request) (kv-name (cadr Request)))
+  (let (Key (caadr Request)
+        Value (cadadr Request) )
+
     (case (uppc (car Request))
+      ["APPEND"     (kv-cmd-append Key Value) ]
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
-      ["CLIENT"     (kv-cmd-client Child (cdr Request) ]
+      ["CLIENT"     (kv-cmd-client Child (cadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]
-      ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
-      ["EXISTS"     (kv-cmd-exists (cadr Request) (; Request 3) ]
-      ["GET"        (kv-cmd-get (cadr Request) ]
-      ["GETSET"     (kv-cmd-getset (cadr Request) (; Request 3) ]
+      ["DEL"        (kv-cmd-del Key (cdadr Request) ]
+      ["EXISTS"     (kv-cmd-exists Key (cdadr Request) ]
+      ["GET"        (kv-cmd-get Key) ]
+      ["GETSET"     (kv-cmd-getset Key Value) ]
+      ["HDEL"       (kv-cmd-hdel Key (cdadr Request) ]
+      ["HEXISTS"    (kv-cmd-hexists Key Value) ]
+      ["HGET"       (kv-cmd-hget Key Value) ]
+      ["HGETALL"    (kv-cmd-hgetall Key) ]
+      ["HKEYS"      (kv-cmd-hkeys Key) ]
+      ["HLEN"       (kv-cmd-hlen Key) ]
+      ["HMGET"      (kv-cmd-hmget Key (cdadr Request) ]
+      ["HSET"       (kv-cmd-hset Key (cdadr Request) ]
+      ["HSTRLEN"    (kv-cmd-hstrlen Key Value) ]
+      ["HVALS"      (kv-cmd-hvals Key) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
-      ["INFO"       (kv-cmd-info (cadr Request) ]
-      ["LINDEX"     (kv-cmd-lindex Key (; Request 3) ]
-      ["LLEN"       (kv-cmd-llen Key) ]
+      ["INFO"       (kv-cmd-info Key) ]
+      ["LINDEX"     (kv-cmd-lindex Key (format Value) ]
+      ["LLEN"       (kv-cmd-strlen Key) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
-      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (; Request 3) ]
-      ["PING"       (kv-cmd-ping (cadr Request) ]
-      ["RPUSH"      (kv-cmd-rpush (cadr Request) Key (; Request 3) ]
+      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key Value) ]
+      ["LPUSH"      (kv-cmd-lpush Key (cdadr Request) ]
+      ["LRANGE"     (kv-cmd-lrange Key (format Value) (format (; (cadr Request) 3) ]
+      ["LREM"       (kv-cmd-lrem Key (format Value) (; (cadr Request) 3) ]
+      ["LSET"       (kv-cmd-lset Key (format Value) (; (cadr Request) 3) ]
+      ["LTRIM"      (kv-cmd-ltrim Key (format Value) (format (; (cadr Request) 3) ]
+      ["MGET"       (kv-cmd-mget (cadr Request) ]
+      ["MSET"       (kv-cmd-mset (cadr Request) ]
+      ["PING"       (kv-cmd-ping Key) ]
+      ["RPOP"       (kv-cmd-rpop Key) ]
+      ["RPOPLPUSH"  (kv-cmd-rpoplpush Key Value) ]
+      ["RPUSH"      (kv-cmd-rpush Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
-      ["SET"        (kv-cmd-set (cadr Request) (; Request 3) ]
+      ["SET"        (kv-cmd-set Key Value) ]
+      ["STRLEN"     (kv-cmd-strlen Key) ]
       [T            "Error: Unknown command" ] ]
 
 [de kv-cmd-flushall ()
   (mapcar '((N) (off (kv-name N))) Keys) ]
 
+[de kv-cmd-append (Key Value)
+  (when (and (kv-check-key Key 'str) Value)
+        (set (kv-name Key) (pack (kv-value Key) Value))
+        (push1 (kv-name "%stats%/keys") Key)
+        (length (kv-value Key) ]
+
 [de kv-cmd-client (Child Cmd)
   (case (uppc (car Cmd))
     ("ID"   (kv-cmd-client-id Child))
-    ("KILL" (kv-cmd-client-kill (; Cmd 2) (; Cmd 3)))
+    ("KILL" (kv-cmd-client-kill (; Cmd 2) (format (; Cmd 3))))
     ("LIST" (kv-cmd-client-list))
     (T      "Error: Unknown client command") ]
 
 [de kv-cmd-client-id (Child)
-  (cdr (assoc "id" (cadr (assoc Child (get (kv-value "%stats%/connected_clients") ]
+  (cdr (assoc "id" (cadr (assoc Child (kv-value "%stats%/connected_clients") ]
 
 [de kv-cmd-client-kill (Filter Arg)
   (case (uppc Filter)
-    ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N) T) (link T))) (get (kv-value "%stats%/connected_clients") ]
+    ["ID"  (length (make (mapcar '((N) (when (= Arg (cdr (assoc "id" (cadr N)))) (kv-remove-client (car N) T) (link T))) (kv-value "%stats%/connected_clients") ]
     (T      0) ]
 
 [de kv-cmd-client-list ()
-  (glue "^J" (mapcar '((N) (glue " " (mapcar '((S) (pack (car S) "=" (cdr S))) (cadr N)))) (get (kv-value "%stats%/connected_clients") ]
+  (glue "^J" (mapcar '((N) (glue " " (mapcar '((S) (pack (car S) "=" (cdr S))) (cadr N)))) (kv-value "%stats%/connected_clients") ]
 
 # convert a database to/from plaintext<->binary
 [de kv-cmd-convert ()
@@ -96,8 +126,9 @@
   (setq *KV_db (pack (dirname *KV_db) (glue "." (append (head -1 (split (chop *KV_db) ".")) (if *KV_binary '(("b" "i" "n")) '(("d" "b")))))))
   (kv-save-db) ]
 
+# TODO: optimize the mass delete of keys
 [de kv-cmd-del (Key Elements)
-  (if (and Key (not (pre? "%stats%/" Key)))
+  (if (kv-check-key Key)
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
       0 ]                                                      # return 0 if no key is specified
 
@@ -106,10 +137,68 @@
       (cnt '((N) (kv-value N)) (conc (list Key) Elements))
       0 ]                                                      # return 0 if no key is specified
 
+[de kv-cmd-get (Key)
+  (kv-value Key) ]
+
+[de kv-cmd-getset (Key Value)
+  (swap (kv-name Key) Value) ]
+
+[de kv-cmd-hdel (Key Elements)
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
+        (length
+          (extract '((N)
+                   (when (assoc N (kv-value Key)) (set (kv-name Key) (delete @ (kv-value Key))) T) )
+                    Elements ]
+
+[de kv-cmd-hexists (Key Field)
+  (if (assoc Field (kv-value Key))
+      1
+      0 ]
+
+[de kv-cmd-hget (Key Field)
+  (cdr (assoc Field (kv-value Key) ]
+
+[de kv-cmd-hgetall (Key)
+  (when (kv-check-key Key 'lst)
+        (extract '((N) (when (lst? N) N)) (kv-value Key) ]
+
+[de kv-cmd-hkeys (Key)
+  (when (kv-check-key Key 'lst)
+        (extract '((N) (when (lst? N) (car N))) (kv-value Key) ]
+
+[de kv-cmd-hlen (Key)
+  (when (kv-check-key Key 'lst)
+        (length (kv-value Key) ]
+
+[de kv-cmd-hmget (Key Elements)
+  (mapcar '((N) (kv-cmd-hget Key N)) Elements) ]
+
+[de kv-cmd-hset (Key Elements)
+  (use *Num
+    (zero *Num)
+    (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
+          [while (cut 2 'Elements)
+            (let Str @
+              (when (cadr Str)
+                    (inc '*Num)
+                    (if (assoc (car Str) (kv-value Key))
+                        (kv-cmd-set Key (replace (kv-value Key) @ (cons (car Str) (cadr Str))))
+                        (kv-cmd-set Key (append (kv-value Key) (list (cons (car Str) (cadr Str) ]
+          *Num ]
+
+[de kv-cmd-hstrlen (Key Field)
+  (when (kv-check-key Key 'lst)
+        (length (cdr (assoc Field (kv-value Key) ]
+
+[de kv-cmd-hvals (Key)
+  (when (kv-check-key Key 'lst)
+        (extract '((N) (when (lst? N) (cdr N))) (kv-value Key) ]
+
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
         [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
           (list Child (append (list (cons "id" (inc '*KV/%stats%/last_client)) (cons "pid" Child)) Elements) ]
+        (inc '*KV/%stats%/total_connections_received)
         (pack "OK " (cdr (assoc "name" Elements) ]
 
 [de kv-cmd-info (Section)
@@ -121,45 +210,98 @@
     ["stats"       (kv-info-format "Stats" (kv-info-stats) ]
     (T             (kv-info-default) ]
 
-[de kv-cmd-lindex (Src Index)
-  (when (and Src (num? Index))
-        (cond
-          ((= -1 Index)   (last (car Src)))
-          ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
-          (T              (get (car Src) (+ 1 Index) ]
+[de kv-cmd-lindex (Key Index)
+  (let Src (kv-name Key)
+    (when (and (kv-check-key Key 'lst) Index (num? Index))
+          (cond
+            ((= -1 Index)   (last (car Src)))
+            ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
+            (T              (get (car Src) (+ 1 Index) ]
 
-[de kv-cmd-llen (Key)
-  (length (car Key) ]
-
-[de kv-cmd-lpop (Src)
-  (when (and Src (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
+[de kv-cmd-lpop (Key)
+  (let Src (kv-name Key)
+    (when (kv-check-key Key 'lst) (pop Src) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
-  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (pop Src))
+  (when (and (kv-check-key Src 'lst) (kv-check-key Dst) (kv-cmd-lpop Src))
         (let Result @
-          (kv-cmd-rpush Dst (kv-name Dst) (list Result))
+          (kv-cmd-rpush Dst (list Result))
+          Result ]
+
+[de kv-cmd-lpush (Key Elements)
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
+        (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
+        (length (kv-value Key) ]
+
+[de kv-cmd-lrange (Key Start Stop)
+  (let Src (kv-name Key)
+    (when (and (kv-check-key Key 'lst) Start Stop (ge0 Start) (ge0 Stop))
+          (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
+
+[de kv-cmd-lrem (Key Count Element)
+  (let Src (kv-name Key)
+    (if (and (kv-check-key Key 'lst) Count Element (ge0 Count))
+        (let Len (length (kv-value Key))
+          (cond
+            ((= 0 Count)  (del Element Src T))
+            (T            (do Count (del Element Src))) )
+          (- Len (length (kv-value Key))) )
+        0 ]
+
+[de kv-cmd-lset (Key Index Element)
+  (let Src (kv-name Key)
+    (when (and (kv-check-key Key 'lst) Index Element (ge0 Index) (< Index (length (kv-value Key))))
+          (kv-cmd-set Key (place (+ 1 Index) (kv-value Key) Element) ]
+
+[de kv-cmd-ltrim (Key Start Stop)
+  (let Src (kv-name Key)
+    (when (and (kv-check-key Key 'lst) Start Stop (ge0 Start) (ge0 Stop))
+          (kv-cmd-set Key (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
+
+[de kv-cmd-mget (Elements)
+  (mapcar kv-cmd-get Elements) ]
+
+[de kv-cmd-mset (Elements)
+  (when (and Elements (lst? Elements))
+        (while (cut 2 'Elements)
+          (let Str @
+            (kv-cmd-set (car Str) (cadr Str)) ) )
+        "OK" ]
+
+[de kv-cmd-rpoplpush (Src Dst)
+  (when (and (kv-check-key Src 'lst) (kv-check-key Dst) (kv-cmd-rpop Src))
+        (let Result @
+          (kv-cmd-lpush Dst (list Result))
           Result ]
 
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
 
-[de kv-cmd-rpush (Key Dst Elements)
-  (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+[de kv-cmd-rpop (Key)
+  (let Src (kv-name Key)
+    (when (kv-check-key Key 'lst) (rot (kv-value Key)) (pop Src) ]
+
+[de kv-cmd-rpush (Key Elements)
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
         (kv-cmd-set Key (append (kv-value Key) Elements))
-        (length (car Dst) ]
+        (length (kv-value Key) ]
 
 [de kv-cmd-set (Key Value)
-  (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
+  (when (and (kv-check-key Key) Value (set (kv-name Key) Value))
         (push1 (kv-name "%stats%/keys") Key)                   # keep a list of all the keys
         "OK" ]
 
-[de kv-cmd-get (Key)
-  (kv-value Key) ]
+[de kv-cmd-strlen (Key)
+  (when Key
+       (length (kv-value Key) ]
 
-[de kv-cmd-getset (Key Value)
-  (let Result (kv-cmd-get Key)
-    (kv-cmd-set Key Value)
-    Result ]
+[de kv-check-key (Key Type)
+  (and Key (not (pre? "%stats%/" Key))
+    (case Type
+      ("lst" (lst? (kv-value Key)))
+      ("str" (str? (kv-value Key)))
+      ("num" (num? (kv-value Key)))
+      (T T) ]
 
 [de kv-name (Name)
   (any (pack "*KV/" Name) ]
@@ -210,7 +352,7 @@
   (list
     (cons "db_format" (if *KV_binary "binary" "plaintext"))
     (cons "loading" *KV/%stats%/loading)
-    (cons "rdb_changes_since_last_save" (if (info *KV_aof) (lines *KV_aof) 0))
+    (cons "rdb_changes_since_last_save" (if (info *KV_aof) (in (list 'wc "-l" *KV_aof) (read)) 0))
     (cons "rdb_bgsave_in_progress" (if (info *KV_db_lock) 1 0))
     (cons "rdb_last_save_time" *KV/%stats%/rdb_last_save_time)
     (cons "rdb_last_bgsave_status" *KV/%stats%/rdb_last_bgsave_status)
@@ -224,7 +366,7 @@
 
 [de kv-info-stats ()
   (list
-    (cons "total_connections_received" (length *KV/%stats%/total_connections_received))
+    (cons "total_connections_received" *KV/%stats%/total_connections_received)
     (cons "total_commands_processed" *KV/%stats%/total_commands_processed)
     (cons "total_net_input_bytes" *KV/%stats%/total_net_input_bytes)
     (cons "total_net_output_bytes" *KV/%stats%/total_net_output_bytes)
@@ -273,7 +415,7 @@
 
 # Write data to the DB, then write the AOF (truncate or wipe)
 [de kv-write-data (Bg)
-  (and (info *KV_db_tmp) (gt0 (car @)) (kv-write-db) (kv-remove-aof Bg) ]
+  (and (info *KV_db_tmp) (kv-write-db) (kv-remove-aof Bg) ]
 
 # Write the data in binary PLIO (pr) or plaintext (println) format
 [de kv-save-data (Key)
@@ -380,7 +522,7 @@
 
 # Save a write command to the append-only log file with a timestamp and hash of the data
 [de kv-save-aof (Request Aof) # Aof is a file descriptor
-  (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
+  (when (member (car Request) *KV_write_commands)
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
           (out Aof (println (list (kv-timestamp T) (kv-hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
@@ -398,7 +540,7 @@
 # Receive a message from a sibling over a named pipe and send it to the client
 [de kv-listen-child ()
   (in *Pipe_child
-    (when (rd) (kv-out-client "message" (cdr @) ]
+    (when (rd) (out *Sock (pr @) ]                             # pipe the message as-is to the client
 
 # Send a message to the sibling over a named pipe
 [de kv-out-sibling (Type . @)
@@ -423,14 +565,14 @@
 [de kv-hash (String)
   (hash String) ]
 
-# Authenticate the client via handshake, and authorizate with a hashed password
+# Authenticate the client via handshake, and authorize with a hashed password
 [de kv-auth (Auth)
   (and
     (lst? Auth)
     (= "AUTH" (car Auth))
     (= (kv-hash *KV_pass) (caddr Auth))
-    (kv-out-client "AUTH" (kv-hash (pack (cadr Auth) *KV_uuid)))
-    (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
+    (kv-out-client "auth" (kv-hash (pack (cadr Auth) *KV_uuid)))
+    (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "port" *SPort) (cons "fd" *Sock)))
     (kv-listen-child) ]
 
 # Receive the initial auth in a child process from the client over a TCP socket
@@ -481,15 +623,14 @@
 # Process the message depending on its type
 [de kv-sibling-message (Type Pid Msg)
   (case Type
-    ("error" (kv-sibling-error Pid Msg))
-    ("done"  (kv-remove-client Pid))
-    ("message" (kv-sibling-job Pid Msg) ]
+    ("error"    (kv-sibling-error Pid Msg))
+    ("done"     (kv-remove-client Pid))
+    ("message"  (kv-sibling-job Pid Msg) ]
 
 # Increment some statistics counters for the INFO command
-[de kv-stats-update (Pid Msg)
+[de kv-stats-update (Msg)
   (inc '*KV/%stats%/total_commands_processed)
-  (inc '*KV/%stats%/total_net_input_bytes (bytes Msg))
-  (push1 '*KV/%stats%/total_connections_received Pid) ]
+  (inc '*KV/%stats%/total_net_input_bytes (bytes Msg) ]
 
 # Receive a message in the sibling, from the child, over a named pipe, then
 # process the message and send the reply back to the child
@@ -497,7 +638,7 @@
   [in *Pipe_sibling
     (when (rd)
           (let Msg @
-            (kv-stats-update (cadr Msg) (caddr Msg))
+            (kv-stats-update (caddr Msg))
             (kv-sibling-message
               (car Msg)                                        # should be the 'type' of message
               (cadr Msg)                                       # should be the sender's Pid

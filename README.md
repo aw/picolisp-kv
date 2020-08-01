@@ -1,6 +1,8 @@
 # Redis-inspired key/value store written in PicoLisp
 
-This program mimics functionality of a [Redis](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications with optional on-disk persistence.
+This program mimics functionality of a [Redis™](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications with optional on-disk persistence and encryption.
+
+> **Note:** This library **DOES NOT** use the [RESP protocol](https://redis.io/topics/protocol) and thus cannot work with the `redis-cli` or other _Redis_ clients/servers.
 
 The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named pipess.
 
@@ -15,7 +17,8 @@ The included `server.l` and `client.l` can be used to send and receive _"Redis-l
   7. [Testing](#testing)
   8. [Contributing](#contributing)
   9. [Changelog](#changelog)
-  10. [License](#license)
+  10. [Notice](#notice)
+  11. [License](#license)
 
 # Requirements
 
@@ -122,158 +125,62 @@ The client handles authentication, identification, and sending of _"Redis-like"_
 # client.l
 Usage:                    ./client.l --pass <pass> COMMAND [arguments]
 
-Example:                  ./client.l --pass foobared --port 6378 INFO server
+Example:                  ./client.l --pass foobared --encrypt SET mysecret -- <(echo 'mypass')
 
 Options:
 --help                    Show this help message and exit
+--commands                Show the full list of commands and exit
 
---name <name>             Easily identifiable client name (default: randomly generated)
+--decrypt                 Enable decryption of values using a GPG public key (default: disabled)
+--encrypt                 Enable encryption of values using a GPG public key (default: disabled)
+--name  <name>            Easily identifiable client name (default: randomly generated)
 --host  <host>            Hostname or IP of the key/value server (default: localhost)
 --pass  <data>            Password used to access the server (required)
 --poll  <seconds>         Number of seconds for polling the key/value server (default: don't poll)
 --port  <port>            TCP port of the key/value server (default: 6378)
+-- STDIN                  Reads an argument from STDIN
 
-COMMAND LIST              Commands are case-insensitive and don't always require arguments.
-                                  Examples:
+COMMAND LIST              Commands are case-insensitive and don't always require arguments
 
-BGSAVE                  		BGSAVE
-CLIENT ID|KILL|LIST id [id ..]    	CLIENT LIST
-CONVERT                 		CONVERT
-DEL key [key ..]        		DEL key1 key2 key3
-EXISTS key [key ..]     		EXISTS key1 key2 key3
-GET key                 		GET key1
-GETSET key value        		GETSET mykey hello
-INFO [section]          		INFO memory
-LINDEX key index        		LINDEX mylist 0
-LLEN key                		LLEN mylist
-LPOP key                		LPOP mylist
-LPOPRPUSH source destination    	LPOPRPUSH mylist myotherlist
-PING [message]          		PING hello
-RPUSH key element [element ..]    	RPUSH mylist task1 task2 task3
-SAVE                    		SAVE
-SET key value           		SET mykey hello
-```
-
-Most `COMMANDS` take the exact same arguments as their respective [Redis commands](https://redis.io/commands).
-
-### Examples
-
-```
-# Obtain information about the server
-./client.l --pass yourpass INFO server
-OK 37D13779
-
-# Server
-app_version:0.11.0
-os:Linux 4.19.34-tinycore64 x86_64
-arch_bits:64
-process_id:38874
-tcp_port:6378
-uptime_in_seconds:1
-uptime_in_days:0
-executable:/usr/bin/picolisp
-
-# Set a key
-./client.l --pass yourpass SET mykey myvalue
-OK 53E02FC6
-OK
-
-# Get a key
-./client.l --pass yourpass GET mykey
-OK 40E83305
-myvalue
-
-# Get a key, then set it
-./client.l --pass yourpass GETSET mykey yourvalue
-OK 69E88646
-myvalue
-
-# Check if a key exists
-./client.l --pass yourpass EXISTS mykey
-OK 43BFA2C
-1
-
-# Delete a key
-./client.l --pass yourpass DEL mykey
-OK 4C2B6088
-1
-
-./client.l --pass yourpass GET mykey
-OK 11242B95
-no data
-
-./client.l --pass yourpass EXISTS mykey
-OK 5F1E8D78
-0
-
-# Add multiple values to a key (a list)
-./client.l --pass yourpass --name 11242B95 RPUSH mylist task1 task2 task3
-OK 11242B95
-3
-
-./client.l --pass yourpass RPUSH mylist task4 task5
-OK 4E7E0FC3
-5
-
-# Left pop a value from the head of a list
-./client.l --pass yourpass LPOP mylist
-OK 258514BF
-task1
-
-# Check how many values are in a key (a list)
-./client.l --pass yourpass LLEN mylist
-OK 107CF205
-4
-
-# Left pop a value from the head of a list, push it to the tail of another list
-./client.l --pass yourpass LPOPRPUSH mylist mynewlist
-OK 46028880
-task2
-
-# Get the value of a key (a list) using a zero-based index
-./client.l --pass yourpass LINDEX mynewlist -1
-OK 129AE0F8
-task2
-
-# Ping the server
-./client.l --pass yourpass PING
-OK 6DCE69EB
-PONG
-
-# Ping the server with a custom message
-./client.l --pass yourpass PING "Hello"
-OK 6F02D9DC
-Hello
-
-# Save the database in the foreground (blocking)
-./client.l --pass yourpass SAVE
-OK 1F60EABE
-OK
-
-# Save the database in the background (non-blocking)
-./client.l --pass yourpass BGSAVE
-OK 1270937D
-Background saving started
-
-# Convert the database from plaintext to binary, or binary to plaintext
-./client.l --pass yourpass CONVERT
-OK 25E3B970
-OK
-
-# Get the list of connected clients
-./client.l --pass yourpass CLIENT LIST
-OK 6FC82046
-id=2 pid=26377 name=6FC82046 addr=::1 fd=7
-id=1 pid=26370 name=783EABE1 addr=::1 fd=7
-
-# Get the current client ID
-./client.l --pass yourpass CLIENT ID
-OK 105ECBFE
-
-# Stop and kill a client connection
-./client.l --pass yourpass CLIENT KILL ID 1
-OK 32CA1C8A
-1
+  APPEND key value          		Append a value to a key
+  BGSAVE                    		Asynchronously save the dataset to disk
+  CLIENT ID                 		Returns the client ID for the current connection
+  CLIENT KILL ID id [id ..]    		Kill the connection of a client
+  CLIENT LIST               		Get the list of client connections
+  CONVERT                   		Convert a plaintext database to binary or vice-versa
+  DEL key [key ..]          		Delete a key
+  EXISTS key [key ..]       		Determine if a key exists
+  GET key                   		Get the value of a key
+  GETSET key value          		Set the string value of a key and return its old value
+  HDEL key field [field ..]    		Delete one or more hash fields
+  HEXISTS key field         		Determine if a hash field exists
+  HGET key field            		Get the value of a hash field
+  HGETALL key               		Get all the fields and values in a hash
+  HKEYS key                 		Get all the fields in a hash
+  HLEN key                  		Get the number of fields in a hash
+  HMGET key field [field ..]    	Get the values of all the given hash fields
+  HSET key field value [field value ..] Set the string value of a hash field
+  HSTRLEN key field         		Get the length of the value of a hash field
+  HVALS key                 		Get all the values in a hash
+  INFO [section]            		Get information and statistics about the server
+  LINDEX key index          		Get an element from a list by its index
+  LLEN key                  		Get the length of a list
+  LPOP key                  		Remove and get the first element in a list
+  LPOPRPUSH source destination    	Remove the first element in a list, append it to another list and return it
+  LPUSH key element [element ..]    	Prepend one or multiple elements to a list
+  LRANGE key start stop     		Get a range of elements from a list
+  LREM key count element    		Remove elements from a list
+  LSET key index element    		Set the value of an element in a list by its index
+  LTRIM key start stop      		Trim a list to the specified range
+  MGET key [key ..]         		Get the values of all the given keys
+  MSET key value [key value ..]    	Set multiple keys to multiple values
+  PING [message]            		Ping the server
+  RPOP key                  		Remove and get the last element in a list
+  RPOLRPUSH source destination    	Remove the last element in a list, prepend it to another list and return it
+  RPUSH key element [element ..]    	Append one or multiple elements to a list
+  SAVE                      		Synchronously save the dataset to disk
+  SET key value             		Set the string value of a key
+  STRLEN key                		Get the length of the value stored in a key
 ```
 
 # Notes and limitations
@@ -431,6 +338,10 @@ This library comes with a large suite of [unit and integration tests](https://gi
 # Changelog
 
 [Changelog](CHANGELOG.md)
+
+# Notice
+
+* Redis is a trademark of Redis Labs Ltd. Any rights therein are reserved to Redis Labs Ltd. Any use by me is for referential purposes only and does not indicate any sponsorship, endorsement or affiliation between Redis and me.
 
 # License
 
