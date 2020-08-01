@@ -20,14 +20,14 @@
   (off *KV/tasks)
   (assert-equal 5 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[RPUSH] Should return the length of the new list")
   (assert-equal 7 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task6" "task7")) "[RPUSH] Should return the extended length of the list")
-  (assert-equal "task1" (kv-cmd-lindex (kv-name "tasks") 0) "[LINDEX] Should return the key at index 0")
-  (assert-equal "task5" (kv-cmd-lindex (kv-name "tasks") 4) "[LINDEX] Should return the key at index 5")
-  (assert-equal "task7" (kv-cmd-lindex (kv-name "tasks") -1) "[LINDEX] Should return the last key")
-  (assert-equal "task6" (kv-cmd-lindex (kv-name "tasks") -2) "[LINDEX] Should return the penultimate key")
-  (assert-nil (kv-cmd-lindex (kv-name "tasks") 10) "[LINDEX] Should return NIL if no value exists at the index")
+  (assert-equal "task1" (kv-cmd-lindex "tasks" 0) "[LINDEX] Should return the key at index 0")
+  (assert-equal "task5" (kv-cmd-lindex "tasks" 4) "[LINDEX] Should return the key at index 5")
+  (assert-equal "task7" (kv-cmd-lindex "tasks" -1) "[LINDEX] Should return the last key")
+  (assert-equal "task6" (kv-cmd-lindex "tasks" -2) "[LINDEX] Should return the penultimate key")
+  (assert-nil (kv-cmd-lindex "tasks" 10) "[LINDEX] Should return NIL if no value exists at the index")
   (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
-  (assert-equal "tasks" (kv-cmd-lindex (kv-name "%stats%/keys") 0) "[LINDEX] Should return the name of the key in the keys list")
-  (assert-equal "task1" (kv-cmd-lpop (kv-name "tasks")) "[LPOP] Should return the first value added to the tasks list")
+  (assert-equal "tasks" (kv-cmd-lindex "%stats%/keys" 0) "[LINDEX] Should return the name of the key in the keys list")
+  (assert-equal "task1" (kv-cmd-lpop "tasks") "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   ]
 
@@ -40,14 +40,14 @@
   (off *KV/tasks)
   (assert-equal 5 (kv-cmd-lpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[LPUSH] Should return the length of the new list")
   (assert-equal 7 (kv-cmd-lpush "tasks" (kv-name "tasks") '("task6" "task7")) "[LPUSH] Should return the extended length of the list")
-  (assert-equal "task7" (kv-cmd-lindex (kv-name "tasks") 0) "[LINDEX] Should return the key at index 0")
-  (assert-equal "task3" (kv-cmd-lindex (kv-name "tasks") 4) "[LINDEX] Should return the key at index 5")
-  (assert-equal "task1" (kv-cmd-lindex (kv-name "tasks") -1) "[LINDEX] Should return the last key")
-  (assert-equal "task2" (kv-cmd-lindex (kv-name "tasks") -2) "[LINDEX] Should return the penultimate key")
-  (assert-nil (kv-cmd-lindex (kv-name "tasks") 10) "[LINDEX] Should return NIL if no value exists at the index")
+  (assert-equal "task7" (kv-cmd-lindex "tasks" 0) "[LINDEX] Should return the key at index 0")
+  (assert-equal "task3" (kv-cmd-lindex "tasks" 4) "[LINDEX] Should return the key at index 5")
+  (assert-equal "task1" (kv-cmd-lindex "tasks" -1) "[LINDEX] Should return the last key")
+  (assert-equal "task2" (kv-cmd-lindex "tasks" -2) "[LINDEX] Should return the penultimate key")
+  (assert-nil (kv-cmd-lindex "tasks" 10) "[LINDEX] Should return NIL if no value exists at the index")
   (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
-  (assert-equal "tasks" (kv-cmd-lindex (kv-name "%stats%/keys") 0) "[LINDEX] Should return the name of the key in the keys list")
-  (assert-equal "task7" (kv-cmd-lpop (kv-name "tasks")) "[LPOP] Should return the first value added to the tasks list")
+  (assert-equal "tasks" (kv-cmd-lindex "%stats%/keys" 0) "[LINDEX] Should return the name of the key in the keys list")
+  (assert-equal "task7" (kv-cmd-lpop "tasks") "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   ]
 
@@ -63,9 +63,9 @@
 
 [de test-commands-lindex ()
   (assert-nil (kv-cmd-lindex) "[LINDEX] Should return NIL if no key is provided")
-  (assert-nil (kv-cmd-lindex (kv-name "testindex")) "[LINDEX] Should return NIL if no index is provided")
-  (assert-nil (kv-cmd-lindex (kv-name "nonexistant")) "[LINDEX] Should return NIL if the key doesn't exist")
-  (assert-nil (kv-cmd-lindex (kv-name "testindex") "abc") "[LINDEX] Should return NIL if index isn't a number")
+  (assert-nil (kv-cmd-lindex "testindex") "[LINDEX] Should return NIL if no index is provided")
+  (assert-nil (kv-cmd-lindex "nonexistant") "[LINDEX] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-lindex "testindex" "abc") "[LINDEX] Should return NIL if index isn't a number")
   ]
 
 [de test-commands-ident ()
@@ -73,7 +73,7 @@
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
   (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-equal '12345 (cdr (assoc "pid" (cadr (kv-cmd-lindex (kv-name "%stats%/connected_clients") 0)))) "[LINDEX] Should return the info of the connected client")
+  (assert-equal '12345 (cdr (assoc "pid" (cadr (kv-cmd-lindex "%stats%/connected_clients" 0)))) "[LINDEX] Should return the info of the connected client")
   (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
   ]
 
@@ -87,28 +87,32 @@
 
 [de test-commands-lpop ()
   (assert-nil (kv-cmd-lpop) "[LPOP] Should return NIL if no key is provided")
-  (assert-nil (kv-cmd-lpop (kv-name "nonexistant")) "[LPOP] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-lpop "nonexistant") "[LPOP] Should return NIL if the key doesn't exist")
   ]
 
 [de test-commands-rpop ()
   (assert-nil (kv-cmd-rpop) "[RPOP] Should return NIL if no key is provided")
-  (assert-nil (kv-cmd-rpop (kv-name "nonexistant")) "[RPOP] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-rpop "nonexistant") "[RPOP] Should return NIL if the key doesn't exist")
   ]
 
 [de test-commands-lpoprpush ()
+  (off *KV/inkey)
+  (off *KV/outkey)
   (assert-nil (kv-cmd-lpoprpush) "[LPOPRPUSH] Should return NIL if no source is provided")
-  (assert-nil (kv-cmd-lpoprpush (kv-name "inkey")) "[LPOPRPUSH] Should return NIL if no dest is provided")
-  (assert-nil (kv-cmd-lpoprpush (kv-name "nonexistant")) "[LPOPRPUSH] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-lpoprpush "inkey") "[LPOPRPUSH] Should return NIL if no dest is provided")
+  (assert-nil (kv-cmd-lpoprpush "nonexistant") "[LPOPRPUSH] Should return NIL if the key doesn't exist")
   (kv-cmd-rpush "inkey" (kv-name "inkey") '(5 6 7 8 9))
-  (assert-equal 5 (kv-cmd-lpoprpush (kv-name "inkey") "outkey") "[LPOPRPUSH] Should return the element being popped")
+  (assert-equal 5 (kv-cmd-lpoprpush "inkey" "outkey") "[LPOPRPUSH] Should return the element being popped")
   (assert-equal 4 (kv-cmd-llen (kv-name "inkey")) "[LLEN] Should list only 4 elements in the source key")
   (assert-equal 1 (kv-cmd-llen (kv-name "outkey")) "[LLEN] Should list only 1 element in the dest key")
-  (assert-equal 5 (kv-cmd-lindex (kv-name "outkey") 0) "[LINDEX] Should return the value of the popped key")
-  (assert-equal 6 (kv-cmd-lindex (kv-name "inkey") 0) "[LINDEX] Should return the value of the first key")
-  (assert-equal 6 (kv-cmd-lpoprpush (kv-name "inkey") "outkey") "[LPOPRPUSH] Should return the element being popped (again)")
+  (assert-equal 5 (kv-cmd-lindex "outkey" 0) "[LINDEX] Should return the value of the popped key")
+  (assert-equal 6 (kv-cmd-lindex "inkey" 0) "[LINDEX] Should return the value of the first key")
+  (assert-equal 6 (kv-cmd-lpoprpush "inkey" "outkey") "[LPOPRPUSH] Should return the element being popped (again)")
   ]
 
 [de test-commands-rpoplpush ()
+  (off *KV/inkey)
+  (off *KV/outkey)
   (assert-nil (kv-cmd-rpoplpush) "[RPOPLPUSH] Should return NIL if no source is provided")
   (assert-nil (kv-cmd-rpoplpush "inkey") "[RPOPLPUSH] Should return NIL if no dest is provided")
   (assert-nil (kv-cmd-rpoplpush "nonexistant") "[RPOPLPUSH] Should return NIL if the key doesn't exist")
@@ -116,8 +120,8 @@
   (assert-equal 9 (kv-cmd-rpoplpush "inkey2" "outkey2") "[RPOPLPUSH] Should return the element being popped")
   (assert-equal 4 (kv-cmd-llen (kv-name "inkey2")) "[LLEN] Should list only 4 elements in the source key")
   (assert-equal 1 (kv-cmd-llen (kv-name "outkey2")) "[LLEN] Should list only 1 element in the dest key")
-  (assert-equal 9 (kv-cmd-lindex (kv-name "outkey2") 0) "[LINDEX] Should return the value of the popped key")
-  (assert-equal 5 (kv-cmd-lindex (kv-name "inkey2") 0) "[LINDEX] Should return the value of the first key")
+  (assert-equal 9 (kv-cmd-lindex "outkey2" 0) "[LINDEX] Should return the value of the popped key")
+  (assert-equal 5 (kv-cmd-lindex "inkey2" 0) "[LINDEX] Should return the value of the first key")
   (assert-equal 8 (kv-cmd-rpoplpush "inkey2" "outkey2") "[RPOPLPUSH] Should return the element being popped (again)")
   ]
 

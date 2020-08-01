@@ -60,10 +60,10 @@
       ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
-      ["LINDEX"     (kv-cmd-lindex Key (format (cadadr Request) ]
+      ["LINDEX"     (kv-cmd-lindex (caadr Request) (format (cadadr Request) ]
       ["LLEN"       (kv-cmd-llen Key) ]
-      ["LPOP"       (kv-cmd-lpop Key) ]
-      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cadadr Request) ]
+      ["LPOP"       (kv-cmd-lpop (caadr Request) ]
+      ["LPOPRPUSH"  (kv-cmd-lpoprpush (caadr Request) (cadadr Request) ]
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
@@ -134,21 +134,23 @@
     ["stats"       (kv-info-format "Stats" (kv-info-stats) ]
     (T             (kv-info-default) ]
 
-[de kv-cmd-lindex (Src Index)
-  (when (and Src (num? Index))
-        (cond
-          ((= -1 Index)   (last (car Src)))
-          ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
-          (T              (get (car Src) (+ 1 Index) ]
+[de kv-cmd-lindex (Key Index)
+  (let Src (kv-name Key)
+    (when (and Src (lst? (kv-value Key)) (num? Index))
+          (cond
+            ((= -1 Index)   (last (car Src)))
+            ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
+            (T              (get (car Src) (+ 1 Index) ]
 
 [de kv-cmd-llen (Key)
   (length (car Key) ]
 
-[de kv-cmd-lpop (Src)
-  (when (and Src (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
+[de kv-cmd-lpop (Key)
+  (let Src (kv-name Key)
+    (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
-  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (pop Src))
+  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-lpop Src))
         (let Result @
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
@@ -160,7 +162,7 @@
           Result ]
 
 [de kv-cmd-lpush (Key Dst Elements)
-  (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
         (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
         (length (car Dst) ]
 
@@ -169,10 +171,10 @@
 
 [de kv-cmd-rpop (Key)
   (let Src (kv-name Key)
-    (when (and Src (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
+    (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
 
 [de kv-cmd-rpush (Key Dst Elements)
-  (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
         (kv-cmd-set Key (append (kv-value Key) Elements))
         (length (car Dst) ]
 
