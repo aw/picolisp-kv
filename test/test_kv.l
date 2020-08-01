@@ -95,23 +95,23 @@
 
 [de test-commands-process ()
   (assert-equal "Error: Unknown command" (kv-process 12345 (list "UNKNOWN")) "[PROCESS] Should return an ERROR message if the command is unknown")
-  (assert-equal 1 (kv-process 12345 (list "DEL" "processkey")) "[PROCESS] Should process the DEL command")
-  (assert-equal "OK" (kv-process 12345 (list "SET" "processkey" "processvalue")) "[PROCESS] Should process the SET command")
-  (assert-equal "processvalue" (kv-process 12345 (list "GET" "processkey")) "[PROCESS] Should process the GET command")
-  (assert-equal 3 (kv-process 12345 (list "RPUSH" "processkey" (11 22 33))) "[PROCESS] Should process the RPUSH command")
+  (assert-equal 1 (kv-process 12345 (list "DEL" '("processkey"))) "[PROCESS] Should process the DEL command")
+  (assert-equal "OK" (kv-process 12345 (list "SET" '("processkey2" "processvalue"))) "[PROCESS] Should process the SET command")
+  (assert-equal "processvalue" (car (kv-process 12345 (list "GET" '("processkey2")))) "[PROCESS] Should process the GET command")
+  (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkey" 11 22 33))) "[PROCESS] Should process the RPUSH command")
   (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
-  (assert-equal 22 (kv-process 12345 (list "LINDEX" "processkey" 1)) "[PROCESS] Should process the LINDEX command")
-  (assert-equal 3 (kv-process 12345 (list "LLEN" "processkey")) "[PROCESS] Should process the LLEN command")
-  (assert-equal 11 (kv-process 12345 (list "LPOP" "processkey")) "[PROCESS] Should process the LPOP command")
-  (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" "processkey" "processdest")) "[PROCESS] Should process the LPOPRPUSH command")
-  (assert-kind-of 'String (kv-process 12345 (list "info" "server")) "[PROCESS] Should process a lowercase command")
+  (assert-equal 22 (kv-process 12345 (list "LINDEX" '("processkey" 1))) "[PROCESS] Should process the LINDEX command")
+  (assert-equal 3 (kv-process 12345 (list "LLEN" '("processkey"))) "[PROCESS] Should process the LLEN command")
+  (assert-equal 11 (kv-process 12345 (list "LPOP" '("processkey"))) "[PROCESS] Should process the LPOP command")
+  (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" '("processkey" "processdest"))) "[PROCESS] Should process the LPOPRPUSH command")
+  (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 
 [de test-commands-bgsave ()
   (kv-cmd-rpush "mylist" (kv-name "mylist") '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
   (let KV_desc (open *KV_aof)
-    (kv-save-aof '("RPUSH" "mylist" ("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) KV_desc)
+    (kv-save-aof '("RPUSH" '("mylist" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) KV_desc)
     (close KV_desc) )
   (assert-equal "OK" (kv-cmd-get "%stats%/aof_last_write_status") "[BGSAVE] Should be OK for saving a valid AOF entry")
   (kv-save-db-keys)
@@ -142,6 +142,7 @@
   (assert-equal "PONG" (kv-cmd-ping) "[PING] Should return PONG")
   (assert-equal "Hello" (kv-cmd-ping "Hello") "[PING] Should return Hello")
   ]
+
 [execute
   (prinl "^J  Testing Key/Value^J")
 

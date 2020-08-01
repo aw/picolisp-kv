@@ -59,7 +59,7 @@
       ["GETSET"     (kv-cmd-getset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
-      ["LINDEX"     (kv-cmd-lindex Key (cdadr Request) ]
+      ["LINDEX"     (kv-cmd-lindex Key (format (cdadr Request) ]
       ["LLEN"       (kv-cmd-llen Key) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cdadr Request) ]
@@ -76,7 +76,7 @@
 [de kv-cmd-client (Child Cmd)
   (case (uppc (car Cmd))
     ("ID"   (kv-cmd-client-id Child))
-    ("KILL" (kv-cmd-client-kill (; Cmd 2) (; Cmd 3)))
+    ("KILL" (kv-cmd-client-kill (; Cmd 2) (format (; Cmd 3))))
     ("LIST" (kv-cmd-client-list))
     (T      "Error: Unknown client command") ]
 
