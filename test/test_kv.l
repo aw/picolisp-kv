@@ -108,6 +108,19 @@
   (assert-equal 6 (kv-cmd-lpoprpush (kv-name "inkey") "outkey") "[LPOPRPUSH] Should return the element being popped (again)")
   ]
 
+[de test-commands-rpoplpush ()
+  (assert-nil (kv-cmd-rpoplpush) "[RPOPLPUSH] Should return NIL if no source is provided")
+  (assert-nil (kv-cmd-rpoplpush "inkey") "[RPOPLPUSH] Should return NIL if no dest is provided")
+  (assert-nil (kv-cmd-rpoplpush "nonexistant") "[RPOPLPUSH] Should return NIL if the key doesn't exist")
+  (kv-cmd-rpush "inkey2" (kv-name "inkey2") '(5 6 7 8 9))
+  (assert-equal 9 (kv-cmd-rpoplpush "inkey2" "outkey2") "[RPOPLPUSH] Should return the element being popped")
+  (assert-equal 4 (kv-cmd-llen (kv-name "inkey2")) "[LLEN] Should list only 4 elements in the source key")
+  (assert-equal 1 (kv-cmd-llen (kv-name "outkey2")) "[LLEN] Should list only 1 element in the dest key")
+  (assert-equal 9 (kv-cmd-lindex (kv-name "outkey2") 0) "[LINDEX] Should return the value of the popped key")
+  (assert-equal 5 (kv-cmd-lindex (kv-name "inkey2") 0) "[LINDEX] Should return the value of the first key")
+  (assert-equal 8 (kv-cmd-rpoplpush "inkey2" "outkey2") "[RPOPLPUSH] Should return the element being popped (again)")
+  ]
+
 [de test-commands-del ()
   (kv-cmd-set "delkey1" "deletekey")
   (assert-equal 1 (kv-cmd-del "delkey1") "[DEL] Should delete a single key")
@@ -181,6 +194,7 @@
   '(test-commands-lindex)
   '(test-commands-lpop)
   '(test-commands-lpoprpush)
+  '(test-commands-rpoplpush)
   '(test-commands-lpush)
   '(test-commands-rpush)
   '(test-commands-stats-failures)

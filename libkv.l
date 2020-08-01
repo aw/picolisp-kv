@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "RPOP" "RPUSH" "SET") )
+  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -66,7 +66,8 @@
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cdadr Request) ]
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
-      ["RPOP"       (kv-cmd-rpop (caadr Request) Key) ]
+      ["RPOP"       (kv-cmd-rpop (caadr Request) ]
+      ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cdadr Request) ]
       ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
       ["SET"        (kv-cmd-set (caadr Request) (cdadr Request) ]
@@ -152,6 +153,12 @@
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
 
+[de kv-cmd-rpoplpush (Src Dst)
+  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
+        (let Result @
+          (kv-cmd-lpush Dst (kv-name Dst) (list Result))
+          Result ]
+
 [de kv-cmd-lpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
         (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
@@ -160,8 +167,9 @@
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
 
-[de kv-cmd-rpop (Key Src)
-  (when (and Src (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
+[de kv-cmd-rpop (Key)
+  (let Src (kv-name Key)
+    (when (and Src (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
