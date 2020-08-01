@@ -106,6 +106,14 @@
       (cnt '((N) (kv-value N)) (conc (list Key) Elements))
       0 ]                                                      # return 0 if no key is specified
 
+[de kv-cmd-get (Key)
+  (kv-value Key) ]
+
+[de kv-cmd-getset (Key Value)
+  (let Result (kv-cmd-get Key)
+    (kv-cmd-set Key Value)
+    Result ]
+
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
         [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
@@ -153,14 +161,6 @@
   (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
         (push1 (kv-name "%stats%/keys") Key)                   # keep a list of all the keys
         "OK" ]
-
-[de kv-cmd-get (Key)
-  (kv-value Key) ]
-
-[de kv-cmd-getset (Key Value)
-  (let Result (kv-cmd-get Key)
-    (kv-cmd-set Key Value)
-    Result ]
 
 [de kv-name (Name)
   (any (pack "*KV/" Name) ]
