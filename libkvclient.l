@@ -86,7 +86,7 @@
                         (kv-receive-data)
                         (kv-throw "ERROR: bad auth") ) )
       ("error"    (kv-throw (pack "ERROR: " (cdr Auth))))
-      (T            (kv-throw "ERROR: unknown response from server") ]
+      (T          (kv-throw "ERROR: unknown response from server") ]
 
 # Open a TCP socket and connect to the server
 [de kv-start-client ()

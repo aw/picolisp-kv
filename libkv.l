@@ -482,9 +482,9 @@
 # Process the message depending on its type
 [de kv-sibling-message (Type Pid Msg)
   (case Type
-    ("error" (kv-sibling-error Pid Msg))
-    ("done"  (kv-remove-client Pid))
-    ("message" (kv-sibling-job Pid Msg) ]
+    ("error"    (kv-sibling-error Pid Msg))
+    ("done"     (kv-remove-client Pid))
+    ("message"  (kv-sibling-job Pid Msg) ]
 
 # Increment some statistics counters for the INFO command
 [de kv-stats-update (Msg)
