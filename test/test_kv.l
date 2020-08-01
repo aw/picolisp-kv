@@ -60,7 +60,7 @@
   (assert-equal *KV_port (cdr (assoc "tcp_port" (kv-info-server))) "[INFO-SERVER] Should return a list of server INFO")
   (assert-nil (cdr (assoc "connected_clients" (kv-info-server))) "[INFO-CLIENTS] Should return a list of clients INFO")
   (assert-kind-of 'String (cdr (assoc "used_memory_human" (kv-info-memory))) "[INFO-MEMORY] Should return a list of memory INFO")
-  (assert-equal 1 (cdr (assoc "total_connections_received" (kv-info-stats))) "[INFO-STATS] Should return a list of stats INFO")
+  (assert-kind-of 'Number (cdr (assoc "total_connections_received" (kv-info-stats))) "[INFO-STATS] Should return a list of stats INFO")
   (assert-kind-of 'String (kv-info-default) "[INFO] Should return a string of INFO")
   ]
 
