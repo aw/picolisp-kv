@@ -17,6 +17,7 @@
   (assert-nil (kv-cmd-rpush "tasks" (kv-name "tasks")) "[RPUSH] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-rpush "tasks" (kv-name "tasks") "element 1") "[RPUSH] Should return NIL if the elements aren't a list")
   (off *KV/%stats%/keys)
+  (off *KV/tasks)
   (assert-equal 5 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[RPUSH] Should return the length of the new list")
   (assert-equal 7 (kv-cmd-rpush "tasks" (kv-name "tasks") '("task6" "task7")) "[RPUSH] Should return the extended length of the list")
   (assert-equal "task1" (kv-cmd-lindex (kv-name "tasks") 0) "[LINDEX] Should return the key at index 0")
@@ -27,6 +28,26 @@
   (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
   (assert-equal "tasks" (kv-cmd-lindex (kv-name "%stats%/keys") 0) "[LINDEX] Should return the name of the key in the keys list")
   (assert-equal "task1" (kv-cmd-lpop (kv-name "tasks")) "[LPOP] Should return the first value added to the tasks list")
+  (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
+  ]
+
+[de test-commands-lpush ()
+  (assert-nil (kv-cmd-lpush) "[LPUSH] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-lpush "tasks") "[LPUSH] Should return NIL if only 1 key is provided")
+  (assert-nil (kv-cmd-lpush "tasks" (kv-name "tasks")) "[LPUSH] Should return NIL if no elements are provided")
+  (assert-nil (kv-cmd-lpush "tasks" (kv-name "tasks") "element 1") "[LPUSH] Should return NIL if the elements aren't a list")
+  (off *KV/%stats%/keys)
+  (off *KV/tasks)
+  (assert-equal 5 (kv-cmd-lpush "tasks" (kv-name "tasks") '("task1" "task2" "task3" "task4" "task5")) "[LPUSH] Should return the length of the new list")
+  (assert-equal 7 (kv-cmd-lpush "tasks" (kv-name "tasks") '("task6" "task7")) "[LPUSH] Should return the extended length of the list")
+  (assert-equal "task7" (kv-cmd-lindex (kv-name "tasks") 0) "[LINDEX] Should return the key at index 0")
+  (assert-equal "task3" (kv-cmd-lindex (kv-name "tasks") 4) "[LINDEX] Should return the key at index 5")
+  (assert-equal "task1" (kv-cmd-lindex (kv-name "tasks") -1) "[LINDEX] Should return the last key")
+  (assert-equal "task2" (kv-cmd-lindex (kv-name "tasks") -2) "[LINDEX] Should return the penultimate key")
+  (assert-nil (kv-cmd-lindex (kv-name "tasks") 10) "[LINDEX] Should return NIL if no value exists at the index")
+  (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
+  (assert-equal "tasks" (kv-cmd-lindex (kv-name "%stats%/keys") 0) "[LINDEX] Should return the name of the key in the keys list")
+  (assert-equal "task7" (kv-cmd-lpop (kv-name "tasks")) "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   ]
 
@@ -69,6 +90,11 @@
   (assert-nil (kv-cmd-lpop (kv-name "nonexistant")) "[LPOP] Should return NIL if the key doesn't exist")
   ]
 
+[de test-commands-rpop ()
+  (assert-nil (kv-cmd-rpop) "[RPOP] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-rpop (kv-name "nonexistant")) "[RPOP] Should return NIL if the key doesn't exist")
+  ]
+
 [de test-commands-lpoprpush ()
   (assert-nil (kv-cmd-lpoprpush) "[LPOPRPUSH] Should return NIL if no source is provided")
   (assert-nil (kv-cmd-lpoprpush (kv-name "inkey")) "[LPOPRPUSH] Should return NIL if no dest is provided")
@@ -105,6 +131,8 @@
   (assert-equal 3 (kv-process 12345 (list "LLEN" '("processkey"))) "[PROCESS] Should process the LLEN command")
   (assert-equal 11 (kv-process 12345 (list "LPOP" '("processkey"))) "[PROCESS] Should process the LPOP command")
   (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" '("processkey" "processdest"))) "[PROCESS] Should process the LPOPRPUSH command")
+  (assert-equal 3 (kv-process 12345 (list "LPUSH" '("processkey3" 44 55 66))) "[PROCESS] Should process the LPUSH command")
+  (assert-equal 33 (kv-process 12345 (list "RPOP" '("processkey"))) "[PROCESS] Should process the RPOP command")
   (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 
@@ -153,6 +181,7 @@
   '(test-commands-lindex)
   '(test-commands-lpop)
   '(test-commands-lpoprpush)
+  '(test-commands-lpush)
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)

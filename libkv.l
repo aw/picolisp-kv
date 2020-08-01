@@ -21,7 +21,8 @@
   *KV_aof_lock  (tmp "kv.aof.lock")
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
-  *KV_db_tmp    (tmp "kv.db.tmp") )
+  *KV_db_tmp    (tmp "kv.db.tmp")
+  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "RPOP" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -63,6 +64,7 @@
       ["LLEN"       (kv-cmd-llen Key) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cdadr Request) ]
+      ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) Key) ]
       ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
@@ -149,6 +151,11 @@
         (let Result @
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
+
+[de kv-cmd-lpush (Key Dst Elements)
+  (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+        (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
+        (length (car Dst) ]
 
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
@@ -385,7 +392,7 @@
 
 # Save a write command to the append-only log file with a timestamp and hash of the data
 [de kv-save-aof (Request Aof) # Aof is a file descriptor
-  (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPOP" "RPUSH" "SET"))
+  (when (member (car Request) *KV_write_commands)
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
           (out Aof (println (list (kv-timestamp T) (kv-hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
