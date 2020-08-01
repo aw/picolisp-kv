@@ -110,6 +110,7 @@
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
         [push1 '*KV/%stats%/connected_clients                  # only add unique clients to the list
           (list Child (append (list (cons "id" (inc '*KV/%stats%/last_client)) (cons "pid" Child)) Elements) ]
+        (inc '*KV/%stats%/total_connections_received)
         (pack "OK " (cdr (assoc "name" Elements) ]
 
 [de kv-cmd-info (Section)
@@ -224,7 +225,7 @@
 
 [de kv-info-stats ()
   (list
-    (cons "total_connections_received" (length *KV/%stats%/total_connections_received))
+    (cons "total_connections_received" *KV/%stats%/total_connections_received)
     (cons "total_commands_processed" *KV/%stats%/total_commands_processed)
     (cons "total_net_input_bytes" *KV/%stats%/total_net_input_bytes)
     (cons "total_net_output_bytes" *KV/%stats%/total_net_output_bytes)
@@ -486,10 +487,9 @@
     ("message" (kv-sibling-job Pid Msg) ]
 
 # Increment some statistics counters for the INFO command
-[de kv-stats-update (Pid Msg)
+[de kv-stats-update (Msg)
   (inc '*KV/%stats%/total_commands_processed)
-  (inc '*KV/%stats%/total_net_input_bytes (bytes Msg))
-  (push1 '*KV/%stats%/total_connections_received Pid) ]
+  (inc '*KV/%stats%/total_net_input_bytes (bytes Msg) ]
 
 # Receive a message in the sibling, from the child, over a named pipe, then
 # process the message and send the reply back to the child
@@ -497,7 +497,7 @@
   [in *Pipe_sibling
     (when (rd)
           (let Msg @
-            (kv-stats-update (cadr Msg) (caddr Msg))
+            (kv-stats-update (caddr Msg))
             (kv-sibling-message
               (car Msg)                                        # should be the 'type' of message
               (cadr Msg)                                       # should be the sender's Pid
