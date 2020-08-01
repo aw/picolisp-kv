@@ -140,7 +140,7 @@
   (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkey" 11 22 33))) "[PROCESS] Should process the RPUSH command")
   (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
   (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
-  (assert-equal 22 (kv-process 12345 (list "LINDEX" '("processkey" 1))) "[PROCESS] Should process the LINDEX command")
+  (assert-equal 22 (kv-process 12345 (list "LINDEX" '("processkey" "1"))) "[PROCESS] Should process the LINDEX command")
   (assert-equal 3 (kv-process 12345 (list "LLEN" '("processkey"))) "[PROCESS] Should process the LLEN command")
   (assert-equal 11 (kv-process 12345 (list "LPOP" '("processkey"))) "[PROCESS] Should process the LPOP command")
   (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" '("processkey" "processdest"))) "[PROCESS] Should process the LPOPRPUSH command")
