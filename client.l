@@ -51,7 +51,7 @@
           (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
 
       (finally
-        (unless (=T @) (bye 1))
+        (when *Msg (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
                 (kv-print @)

@@ -429,7 +429,7 @@
     (lst? Auth)
     (= "AUTH" (car Auth))
     (= (kv-hash *KV_pass) (caddr Auth))
-    (kv-out-client "AUTH" (kv-hash (pack (cadr Auth) *KV_uuid)))
+    (kv-out-client "auth" (kv-hash (pack (cadr Auth) *KV_uuid)))
     (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
     (kv-listen-child) ]
 

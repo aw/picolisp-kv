@@ -21,7 +21,7 @@
 # HELPERS
 # Send error message to STDERR
 [de kv-throw (Error)
-  (msg Error)
+  (out 2 (prinl Error))
   (setq *Msg Error)
   (throw 'kv-error Error) ]
 
@@ -55,7 +55,7 @@
     ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
     ["SAVE"       (out *Sock (pr (list "SAVE") ]
     ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
-    (T            (setq *Bye '((msg "ERROR: unknown command"))) (bye 1) ]
+    (T            (setq *Bye '((out 2 (prinl "ERROR: unknown command")))) (bye 1) ]
 
 # Send commands to the server and receive a response
 [de kv-send-data (Cmdargs)
@@ -63,7 +63,7 @@
 
 # Receive data from the server on the TCP socket, return the result or NIL
 [de kv-receive ()
-  (in *Sock (when (rd) @) ]
+  (abort *KV_abort (in *Sock (when (rd) @) ]
 
 # Receive data from the server on the TCP socket, return the parsed result
 [de kv-receive-data ()
@@ -80,10 +80,13 @@
 # Authenticate to the server by hashing the password and validating the response
 [de kv-authenticate ()
   (out *Sock (pr (list "AUTH" *KV_clientid (kv-hash *KV_pass))))
-  (in *Sock
-    (if (and (rd) (= (cdr @) (kv-hash (pack *KV_clientid *KV_uuid))))
-            (kv-receive-data)
-            (kv-throw "ERROR: bad auth") ]
+  (let Auth (kv-receive)
+    (case (car Auth)
+      ("auth"     (if (= (cdr Auth) (kv-hash (pack *KV_clientid *KV_uuid)))
+                        (kv-receive-data)
+                        (kv-throw "ERROR: bad auth") ) )
+      ("error"    (kv-throw (pack "ERROR: " (cdr Auth))))
+      (T            (kv-throw "ERROR: unknown response from server") ]
 
 # Open a TCP socket and connect to the server
 [de kv-start-client ()
