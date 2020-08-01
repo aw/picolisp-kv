@@ -48,25 +48,25 @@
 ###
 
 [de kv-process (Child Request)
-  (let Key (when (cadr Request) (kv-name (cadr Request)))
+  (let Key (when (caadr Request) (kv-name (caadr Request)))
     (case (uppc (car Request))
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
-      ["CLIENT"     (kv-cmd-client Child (cdr Request) ]
+      ["CLIENT"     (kv-cmd-client Child (caadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]
-      ["DEL"        (kv-cmd-del (cadr Request) (; Request 3) ]
-      ["EXISTS"     (kv-cmd-exists (cadr Request) (; Request 3) ]
-      ["GET"        (kv-cmd-get (cadr Request) ]
-      ["GETSET"     (kv-cmd-getset (cadr Request) (; Request 3) ]
+      ["DEL"        (kv-cmd-del (caadr Request) (cdadr Request) ]
+      ["EXISTS"     (kv-cmd-exists (caadr Request) (cdadr Request) ]
+      ["GET"        (kv-cmd-get (caadr Request) ]
+      ["GETSET"     (kv-cmd-getset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
-      ["INFO"       (kv-cmd-info (cadr Request) ]
-      ["LINDEX"     (kv-cmd-lindex Key (; Request 3) ]
+      ["INFO"       (kv-cmd-info (caadr Request) ]
+      ["LINDEX"     (kv-cmd-lindex Key (cdadr Request) ]
       ["LLEN"       (kv-cmd-llen Key) ]
       ["LPOP"       (kv-cmd-lpop Key) ]
-      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (; Request 3) ]
-      ["PING"       (kv-cmd-ping (cadr Request) ]
-      ["RPUSH"      (kv-cmd-rpush (cadr Request) Key (; Request 3) ]
+      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cdadr Request) ]
+      ["PING"       (kv-cmd-ping (caadr Request) ]
+      ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
-      ["SET"        (kv-cmd-set (cadr Request) (; Request 3) ]
+      ["SET"        (kv-cmd-set (caadr Request) (cdadr Request) ]
       [T            "Error: Unknown command" ] ]
 
 [de kv-cmd-flushall ()
@@ -151,6 +151,9 @@
 
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
+
+[de kv-cmd-rpop (Src)
+  (when (and Src (not (pre? "*KV/%stats%/" Src))) (pop (rot Src) ]
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))

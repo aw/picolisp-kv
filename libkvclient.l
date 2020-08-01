@@ -38,24 +38,7 @@
 # IPC
 # Send commands to the server on the TCP socket
 [de kv-send-commands (Cmdargs)
-  (case (uppc (pop 'Cmdargs))
-    ["BGSAVE"     (out *Sock (pr (list "BGSAVE") ]
-    ["CLIENT"     (out *Sock (pr (list "CLIENT" (pop 'Cmdargs) (pop 'Cmdargs) (format (pop 'Cmdargs) ]
-    ["CONVERT"    (out *Sock (pr (list "CONVERT") ]
-    ["DEL"        (out *Sock (pr (list "DEL" (pop 'Cmdargs) Cmdargs) ]
-    ["EXISTS"     (out *Sock (pr (list "EXISTS" (pop 'Cmdargs) Cmdargs) ]
-    ["GET"        (out *Sock (pr (list "GET" (pop 'Cmdargs) ]
-    ["GETSET"     (out *Sock (pr (list "GETSET" (pop 'Cmdargs) (pop 'Cmdargs) ]
-    ["INFO"       (out *Sock (pr (list "INFO" (pop 'Cmdargs) ]
-    ["LINDEX"     (out *Sock (pr (list "LINDEX" (pop 'Cmdargs) (format (pop 'Cmdargs) ]
-    ["LLEN"       (out *Sock (pr (list "LLEN" (pop 'Cmdargs) ]
-    ["LPOP"       (out *Sock (pr (list "LPOP" (pop 'Cmdargs) ]
-    ["LPOPRPUSH"  (out *Sock (pr (list "LPOPRPUSH" (pop 'Cmdargs) (pop 'Cmdargs) ]
-    ["PING"       (out *Sock (pr (list "PING" (pop 'Cmdargs) ]
-    ["RPUSH"      (out *Sock (pr (list "RPUSH" (pop 'Cmdargs) Cmdargs) ]
-    ["SAVE"       (out *Sock (pr (list "SAVE") ]
-    ["SET"        (out *Sock (pr (list "SET" (pop 'Cmdargs) (pop 'Cmdargs) ]
-    (T            (setq *Bye '((out 2 (prinl "ERROR: unknown command")))) (bye 1) ]
+  (out *Sock (pr (list (uppc (pop 'Cmdargs)) Cmdargs) ]
 
 # Send commands to the server and receive a response
 [de kv-send-data (Cmdargs)
