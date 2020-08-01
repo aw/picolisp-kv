@@ -64,6 +64,7 @@
       ["LPOP"       (kv-cmd-lpop Key) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush Key (cdadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
+      ["RPOP"       (kv-cmd-rpop (caadr Request) Key) ]
       ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
       ["SET"        (kv-cmd-set (caadr Request) (cdadr Request) ]
@@ -152,8 +153,8 @@
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
 
-[de kv-cmd-rpop (Src)
-  (when (and Src (not (pre? "*KV/%stats%/" Src))) (pop (rot Src) ]
+[de kv-cmd-rpop (Key Src)
+  (when (and Src (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
 
 [de kv-cmd-rpush (Key Dst Elements)
   (when (and Dst Elements (lst? Elements) (not (pre? "%stats%/" Key)))
@@ -277,7 +278,7 @@
 
 # Write data to the DB, then write the AOF (truncate or wipe)
 [de kv-write-data (Bg)
-  (and (info *KV_db_tmp) (gt0 (car @)) (kv-write-db) (kv-remove-aof Bg) ]
+  (and (info *KV_db_tmp) (kv-write-db) (kv-remove-aof Bg) ]
 
 # Write the data in binary PLIO (pr) or plaintext (println) format
 [de kv-save-data (Key)
@@ -384,7 +385,7 @@
 
 # Save a write command to the append-only log file with a timestamp and hash of the data
 [de kv-save-aof (Request Aof) # Aof is a file descriptor
-  (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPUSH" "SET"))
+  (when (member (car Request) '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "RPOP" "RPUSH" "SET"))
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
           (out Aof (println (list (kv-timestamp T) (kv-hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
