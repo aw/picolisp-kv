@@ -35,6 +35,8 @@
   (assert-equal "OK" (kv-cmd-lset "tasks" 4 "task8") "[LSET] Should return OK if the task value was replaced")
   (assert-nil (kv-cmd-lset "tasks" 10 "task8") "[LSET] Should return NIL if the task value can't be replaced")
   (assert-equal "task8" (kv-cmd-lindex "tasks" 4) "[LINDEX] Should return the value of the key in the keys list")
+  (assert-equal "OK" (kv-cmd-ltrim "tasks" 0 1) "[LTRIM] Should return OK when if the task list is trimmed")
+  (assert-equal 2 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys in the keys list (shortened again)")
   ]
 
 [de test-commands-lpush ()
@@ -134,6 +136,12 @@
   (assert-nil (kv-cmd-lset "inkey" -1 "value" "one") "[LSET] Should return NIL if the index has a negative number")
   ]
 
+[de test-commands-ltrim ()
+  (assert-nil (kv-cmd-ltrim) "[LTRIM] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-ltrim "nonexistant") "[LTRIM] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-ltrim "inkey" -1 -2) "[LTRIM] Should return NIL if the range has a negative number")
+  ]
+
 [de test-commands-rpoplpush ()
   (off *KV/inkey)
   (off *KV/outkey)
@@ -177,6 +185,7 @@
   (assert-equal 33 (kv-process 12345 (list "RPOP" '("processkey"))) "[PROCESS] Should process the RPOP command")
   (assert-equal 1 (kv-process 12345 (list "LREM" '("processkey3" "2" 44))) "[PROCESS] Should process the LREM command")
   (assert-equal "OK" (kv-process 12345 (list "LSET" '("processkey3" "1" "77"))) "[PROCESS] Should process the LSET command")
+  (assert-equal "OK" (kv-process 12345 (list "LTRIM" '("processkey3" "0" "1"))) "[PROCESS] Should process the LTRIM command")
   (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 

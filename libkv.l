@@ -68,6 +68,7 @@
       ["LRANGE"     (kv-cmd-lrange (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
       ["LREM"       (kv-cmd-lrem (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["LSET"       (kv-cmd-lset (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
+      ["LTRIM"      (kv-cmd-ltrim (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -158,6 +159,11 @@
           (kv-cmd-rpush Dst (kv-name Dst) (list Result))
           Result ]
 
+[de kv-cmd-lpush (Key Dst Elements)
+  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+        (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
+        (length (car Dst) ]
+
 [de kv-cmd-lrange (Key Start Stop)
   (let Src (kv-name Key)
     (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
@@ -178,16 +184,16 @@
     (when (and Src (lst? (kv-value Key)) (ge0 Index) (< Index (length (kv-value Key)))  (not (pre? "*KV/%stats%/" Src)))
           (kv-cmd-set Key (place (+ 1 Index) (kv-value Key) Element) ]
 
+[de kv-cmd-ltrim (Key Start Stop)
+  (let Src (kv-name Key)
+    (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+          (kv-cmd-set Key (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
+
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
         (let Result @
           (kv-cmd-lpush Dst (kv-name Dst) (list Result))
           Result ]
-
-[de kv-cmd-lpush (Key Dst Elements)
-  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
-        (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
-        (length (car Dst) ]
 
 [de kv-cmd-ping (Msg)
   (if Msg @ "PONG") ]
