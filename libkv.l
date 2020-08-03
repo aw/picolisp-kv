@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -51,6 +51,7 @@
 [de kv-process (Child Request)
   (let Key (when (caadr Request) (kv-name (caadr Request)))
     (case (uppc (car Request))
+      ["APPEND"     (kv-cmd-append (caadr Request) (cdadr Request) ]
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
       ["CLIENT"     (kv-cmd-client Child (cadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]
@@ -79,6 +80,12 @@
 
 [de kv-cmd-flushall ()
   (mapcar '((N) (off (kv-name N))) Keys) ]
+
+[de kv-cmd-append (Key Value)
+  (when (and Key Value (str? (kv-value Key))  (not (pre? "%stats%/" Key)))
+        (set (kv-name Key) (pack (kv-value Key) Value))
+        (push1 (kv-name "%stats%/keys") Key)
+        (length (kv-value Key) ]
 
 [de kv-cmd-client (Child Cmd)
   (case (uppc (car Cmd))

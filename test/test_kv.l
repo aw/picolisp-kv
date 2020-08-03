@@ -1,5 +1,15 @@
 # Key/Value tests
 
+[de test-commands-append ()
+  (kv-cmd-rpush "appendlist" (kv-name "appendlist") '("one" "two"))
+  (assert-nil (kv-cmd-append) "[APPEND] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-append "testkey") "[APPEND] Should return NIL if no value is provided")
+  (assert-nil (kv-cmd-append "appendlist" "test") "[APPEND] Should return NIL if the key is not a string")
+  (kv-cmd-set "appendkey" "hello")
+  (assert-equal 10 (kv-cmd-append "appendkey" "world") "[APPEND] Should append a key and return its length")
+  (assert-equal "helloworld" (kv-cmd-get "appendkey") "[GET] Should return the value of the key")
+  ]
+
 [de test-commands-get-set ()
   (assert-nil (kv-cmd-set) "[SET] Should return NIL if no key is provided")
   (assert-nil (kv-cmd-set "testkey") "[SET] Should return NIL if no value is provided")
@@ -172,7 +182,8 @@
   (assert-equal "Error: Unknown command" (kv-process 12345 (list "UNKNOWN")) "[PROCESS] Should return an ERROR message if the command is unknown")
   (assert-equal 1 (kv-process 12345 (list "DEL" '("processkey"))) "[PROCESS] Should process the DEL command")
   (assert-equal "OK" (kv-process 12345 (list "SET" '("processkey2" "processvalue"))) "[PROCESS] Should process the SET command")
-  (assert-equal "processvalue" (car (kv-process 12345 (list "GET" '("processkey2")))) "[PROCESS] Should process the GET command")
+  (assert-equal 15 (kv-process 12345 (list "APPEND" '("processkey2" "hey"))) "[PROCESS] Should process the APPEND command")
+  (assert-equal "processvaluehey" (car (kv-process 12345 (list "GET" '("processkey2")))) "[PROCESS] Should process the GET command")
   (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkey" 11 22 33))) "[PROCESS] Should process the RPUSH command")
   (assert-equal '(11) (kv-process 12345 (list "LRANGE" '("processkey" "0" "0"))) "[PROCESS] Should process the LRANGE command")
   (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
@@ -227,6 +238,7 @@
   (prinl "^J  Testing Key/Value^J")
 
   '(assert-equal 0 (kv-cmd-llen (kv-name "nonexistant")) "[LLEN] Should return 0 if the key doesn't exist")
+  '(test-commands-append)
   '(test-commands-del)
   '(test-commands-get-set)
   '(test-commands-ident)
@@ -239,6 +251,7 @@
   '(test-commands-lrange)
   '(test-commands-lrem)
   '(test-commands-lset)
+  '(test-commands-ltrim)
   '(test-commands-rpush)
   '(test-commands-stats-failures)
   '(test-commands-process)
