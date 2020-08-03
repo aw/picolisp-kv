@@ -118,9 +118,7 @@
   (kv-value Key) ]
 
 [de kv-cmd-getset (Key Value)
-  (let Result (kv-cmd-get Key)
-    (kv-cmd-set Key Value)
-    Result ]
+  (swap (kv-name Key) Value) ]
 
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
