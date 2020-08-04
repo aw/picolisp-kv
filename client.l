@@ -15,6 +15,7 @@
                ("--pass  <data>"          "Password used to access the server (required)")
                ("--poll  <seconds>"       "Number of seconds for polling the key/value server (default: don't poll)")
                ("--port  <port>"          "TCP port of the key/value server (default: 6378)")
+               ("-- STDIN"                "Allows reading an argument from STDIN")
                ()
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
@@ -48,6 +49,7 @@
           (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
           (--poll     (setq *KV_poll (opt)))                   # enable polling of command
           (--pass     (setq *KV_pass (opt)))                   # required password
+          (--         (queue '*Cmdargs (in (opt) (line T))))   # reads the argument from STDIN
           (T          (queue '*Cmdargs @)) ) )                 # save remaining cmdline arguments
 
       (finally
