@@ -14,7 +14,8 @@
   *KV_port      6378
   *KV_pass      NIL
   *KV_abort     60                                       # max time (in seconds) to wait for a message
-  *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E" ) # for server handshake, do not change
+  *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E"   # for server handshake, do not change
+  *KV_gpgid     "secrets/gpg-id" )                       # key name containing the GPG ID used to encrypt data
 
 (off *KV_poll)
 
@@ -31,9 +32,30 @@
     ((lst? Result)  (prinl (glue "," Result)))
     (T              (prinl Result) ]
 
-# non cryptographically secure hash, can be changed in the future
+# Non cryptographically secure hash, can be changed in the future
 [de kv-hash (String)
   (hash String) ]
+
+# Encrypt a string from STDIN using GPG, with a default recipient
+[de kv-encrypt-gpg (String Id)
+  (pipe
+    (out (list 'gpg "-v" "--output" "-" "--yes" "-a" "--encrypt" "-r" Id)
+      (prinl String) )
+    (till NIL T) ]
+
+[de kv-encrypt-getid (Args)
+  (and
+    (member (car Args) '("APPEND" "GETSET" "LPUSH" "RPUSH" "SET"))
+    (= 3 (length Args))
+    (kv-send-commands (list "GET" (list *KV_gpgid)))
+    (kv-receive) ]
+
+[de kv-encrypt (Args)
+  (if (and
+        (cdr (kv-encrypt-getid Cmdargs))
+        (kv-send-commands (place 3 Cmdargs (kv-encrypt-gpg (last Cmdargs) @))) )
+      (kv-receive-data)
+      "unable to send encrypted data" ]
 
 # IPC
 # Send commands to the server on the TCP socket
@@ -42,7 +64,11 @@
 
 # Send commands to the server and receive a response
 [de kv-send-data (Cmdargs)
-  (when (kv-send-commands Cmdargs) (kv-receive-data) ]
+  (if *KV_encrypt
+      (kv-encrypt)
+      (if (kv-send-commands Cmdargs)
+          (kv-receive-data)
+          "unable to send data" ]
 
 # Receive data from the server on the TCP socket, return the result or NIL
 [de kv-receive ()

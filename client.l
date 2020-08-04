@@ -7,10 +7,11 @@
 
 [de APP_HELP
   ("usage"     "./client.l --pass <pass> COMMAND [arguments]")
-  ("example"   "./client.l --pass foobared --port 6378 INFO server^J")
+  ("example"   "./client.l --pass foobared --encrypt SET mysecret -- <(echo 'mypass')^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
-               ("--name <name>"           "Easily identifiable client name (default: randomly generated)")
+               ("--encrypt"               "Enable encryption of values using a GPG public key (default: disabled)")
+               ("--name  <name>"          "Easily identifiable client name (default: randomly generated)")
                ("--host  <host>"          "Hostname or IP of the key/value server (default: localhost)")
                ("--pass  <data>"          "Password used to access the server (required)")
                ("--poll  <seconds>"       "Number of seconds for polling the key/value server (default: don't poll)")
@@ -19,6 +20,7 @@
                ()
                ("COMMAND LIST"     "Commands are case-insensitive and don't always require arguments.^J^I^I^I^I^IExamples:")
                ()
+               ("  APPEND key value"                  "^I^IAPPEND mykey hello")
                ("  BGSAVE"                            "^I^IBGSAVE")
                ("  CLIENT ID|KILL|LIST id [id ..]"    "^ICLIENT LIST")
                ("  CONVERT"                           "^I^ICONVERT")
@@ -31,7 +33,14 @@
                ("  LLEN key"                          "^I^ILLEN mylist")
                ("  LPOP key"                          "^I^ILPOP mylist")
                ("  LPOPRPUSH source destination"      "^ILPOPRPUSH mylist myotherlist")
+               ("  LPUSH key element [element ..]"    "^ILPUSH mylist task1 task2 task3")
+               ("  LRANGE key start stop"             "^I^ILRANGE mylist 0 10")
+               ("  LREM key count element"            "^I^ILREM mylist 2 task")
+               ("  LSET key index element"            "^I^ILSET mylist 0 newtask1")
+               ("  LTRIM key start stop"              "^I^ILTRIM mylist task1 task2 task3")
                ("  PING [message]"                    "^I^IPING hello")
+               ("  RPOP key"                          "^I^IRPOP mylist")
+               ("  RPOLRPUSH source destination"      "^IRPOPRPUSH mylist myotherlist")
                ("  RPUSH key element [element ..]"    "^IRPUSH mylist task1 task2 task3")
                ("  SAVE"                              "^I^ISAVE")
                ("  SET key value"                     "^I^ISET mykey hello") ]
@@ -44,6 +53,7 @@
       (while (opt)
         (case @
           (--help     (kv-show-help) (bye 1))
+          (--encrypt  (on *KV_encrypt))                        # encrypt all values using GPG
           (--host     (setq *KV_host (opt)))                   # default 'localhost'
           (--port     (setq *KV_port (opt)))                   # default '6378'
           (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
