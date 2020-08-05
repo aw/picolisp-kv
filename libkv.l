@@ -59,6 +59,7 @@
       ["EXISTS"     (kv-cmd-exists (caadr Request) (cdadr Request) ]
       ["GET"        (kv-cmd-get (caadr Request) ]
       ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
+      ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
@@ -127,6 +128,9 @@
 
 [de kv-cmd-getset (Key Value)
   (swap (kv-name Key) Value) ]
+
+[de kv-cmd-hget (Key Field)
+  (cdr (assoc Field (kv-value Key) ]
 
 [de kv-cmd-hset (Key Elements)
   (use *Num
