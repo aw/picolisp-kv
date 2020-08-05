@@ -65,6 +65,7 @@
       ["HGETALL"    (kv-cmd-hgetall (caadr Request) ]
       ["HKEYS"      (kv-cmd-hkeys (caadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
+      ["HVALS"      (kv-cmd-hvals (caadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
       ["LINDEX"     (kv-cmd-lindex (caadr Request) (format (cadadr Request) ]
@@ -168,6 +169,10 @@
                         (kv-cmd-set Key (replace (kv-value Key) @ (cons (car Str) (cadr Str))))
                         (kv-cmd-set Key (append (kv-value Key) (list (cons (car Str) (cadr Str))))) ) ) ) )
           *Num ]
+
+[de kv-cmd-hvals (Key)
+  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+        (mapcar cdr (kv-value Key) ]
 
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
