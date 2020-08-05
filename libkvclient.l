@@ -36,11 +36,18 @@
 [de kv-hash (String)
   (hash String) ]
 
-# Encrypt a string from STDIN using GPG, with a default recipient
+# Encrypt a string from STDIN using GPG, with one recipient
 [de kv-encrypt-gpg (String Id)
   (pipe
     (out (list 'gpg "-v" "--output" "-" "--yes" "-a" "--encrypt" "-r" Id)
-      (prinl String) )
+      (prin String) )
+    (till NIL T) ]
+
+# Decrypt a string using GPG
+[de kv-decrypt-gpg (String)
+  (pipe
+    (out (list 'gpg "-q" "--decrypt" "--yes")
+      (prin String) )
     (till NIL T) ]
 
 [de kv-encrypt-getid (Args)
@@ -67,7 +74,9 @@
   (if *KV_encrypt
       (kv-encrypt)
       (if (kv-send-commands Cmdargs)
-          (kv-receive-data)
+          (if *KV_decrypt
+              (kv-decrypt-gpg (kv-receive-data))
+              (kv-receive-data) )
           "unable to send data" ]
 
 # Receive data from the server on the TCP socket, return the result or NIL

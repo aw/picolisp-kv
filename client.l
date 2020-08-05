@@ -10,6 +10,7 @@
   ("example"   "./client.l --pass foobared --encrypt SET mysecret -- <(echo 'mypass')^J")
   ("options"   ("--help"                  "Show this help message and exit")
                ()
+               ("--decrypt"               "Enable decryption of values using a GPG public key (default: disabled)")
                ("--encrypt"               "Enable encryption of values using a GPG public key (default: disabled)")
                ("--name  <name>"          "Easily identifiable client name (default: randomly generated)")
                ("--host  <host>"          "Hostname or IP of the key/value server (default: localhost)")
@@ -53,6 +54,7 @@
       (while (opt)
         (case @
           (--help     (kv-show-help) (bye 1))
+          (--decrypt  (on *KV_decrypt))                        # decrypt all values using GPG
           (--encrypt  (on *KV_encrypt))                        # encrypt all values using GPG
           (--host     (setq *KV_host (opt)))                   # default 'localhost'
           (--port     (setq *KV_port (opt)))                   # default '6378'
