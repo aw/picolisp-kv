@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("APPEND" "DEL" "GETSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -59,6 +59,7 @@
       ["EXISTS"     (kv-cmd-exists (caadr Request) (cdadr Request) ]
       ["GET"        (kv-cmd-get (caadr Request) ]
       ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
+      ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
       ["LINDEX"     (kv-cmd-lindex (caadr Request) (format (cadadr Request) ]
@@ -126,6 +127,19 @@
 
 [de kv-cmd-getset (Key Value)
   (swap (kv-name Key) Value) ]
+
+[de kv-cmd-hset (Key Elements)
+  (use *Num
+    (zero *Num)
+    (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+          (while (cut 2 'Elements)
+            (let Str @
+              (when (cadr Str)
+                    (inc '*Num)
+                    (if (assoc (car Str) (kv-value Key))
+                        (kv-cmd-set Key (replace (kv-value Key) @ (cons (car Str) (cadr Str))))
+                        (kv-cmd-set Key (append (kv-value Key) (list (cons (car Str) (cadr Str))))) ) ) ) )
+          *Num ]
 
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
