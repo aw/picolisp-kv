@@ -67,6 +67,7 @@
       ["HLEN"       (kv-cmd-hlen (caadr Request) ]
       ["HMGET"      (kv-cmd-hmget (caadr Request) (cdadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
+      ["HSTRLEN"    (kv-cmd-hstrlen (caadr Request) (cadadr Request) ]
       ["HVALS"      (kv-cmd-hvals (caadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
@@ -173,14 +174,18 @@
   (use *Num
     (zero *Num)
     (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
-          (while (cut 2 'Elements)
+          [while (cut 2 'Elements)
             (let Str @
               (when (cadr Str)
                     (inc '*Num)
                     (if (assoc (car Str) (kv-value Key))
                         (kv-cmd-set Key (replace (kv-value Key) @ (cons (car Str) (cadr Str))))
-                        (kv-cmd-set Key (append (kv-value Key) (list (cons (car Str) (cadr Str))))) ) ) ) )
+                        (kv-cmd-set Key (append (kv-value Key) (list (cons (car Str) (cadr Str) ]
           *Num ]
+
+[de kv-cmd-hstrlen (Key Field)
+  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+        (length (cdr (assoc Field (kv-value Key) ]
 
 [de kv-cmd-hvals (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
