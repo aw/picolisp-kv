@@ -87,6 +87,7 @@
       ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
       ["SET"        (kv-cmd-set (caadr Request) (cadadr Request) ]
+      ["STRLEN"     (kv-cmd-strlen (caadr Request) ]
       [T            "Error: Unknown command" ] ]
 
 [de kv-cmd-flushall ()
@@ -284,6 +285,9 @@
   (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
         (push1 (kv-name "%stats%/keys") Key)                   # keep a list of all the keys
         "OK" ]
+
+[de kv-cmd-strlen (Key)
+  (length (kv-value Key) ]
 
 [de kv-name (Name)
   (any (pack "*KV/" Name) ]
