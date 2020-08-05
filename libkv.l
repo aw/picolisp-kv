@@ -151,11 +151,11 @@
 
 [de kv-cmd-hgetall (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
-        (kv-cmd-get Key) ]
+        (extract '((N) (when (lst? N) N)) (kv-value Key) ]
 
 [de kv-cmd-hkeys (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
-        (mapcar car (kv-value Key) ]
+        (extract '((N) (when (lst? N) (car N))) (kv-value Key) ]
 
 [de kv-cmd-hset (Key Elements)
   (use *Num
@@ -172,7 +172,7 @@
 
 [de kv-cmd-hvals (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
-        (mapcar cdr (kv-value Key) ]
+        (extract '((N) (when (lst? N) (cdr N))) (kv-value Key) ]
 
 [de kv-cmd-ident (Child Elements)
   (when (and Child Elements (lst? Elements))                   # NIL if the IDENT isn't a list
