@@ -65,6 +65,7 @@
       ["HGETALL"    (kv-cmd-hgetall (caadr Request) ]
       ["HKEYS"      (kv-cmd-hkeys (caadr Request) ]
       ["HLEN"       (kv-cmd-hlen (caadr Request) ]
+      ["HMGET"      (kv-cmd-hmget (caadr Request) (cdadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["HVALS"      (kv-cmd-hvals (caadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -162,6 +163,9 @@
 [de kv-cmd-hlen (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
         (length (kv-value Key) ]
+
+[de kv-cmd-hmget (Key Elements)
+  (mapcar '((N) (kv-cmd-hget Key N)) Elements) ]
 
 [de kv-cmd-hset (Key Elements)
   (use *Num
