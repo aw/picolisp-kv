@@ -51,16 +51,18 @@
     (till NIL T) ]
 
 [de kv-encrypt-getid (Args)
+  (case (length Args)
+    (3    (member (car Args) '("APPEND" "GETSET" "LPUSH" "RPUSH" "SET")))
+    (4    (member (car Args) '("HSET" "LSET"))) )
   (and
-    (member (car Args) '("APPEND" "GETSET" "LPUSH" "RPUSH" "SET"))
-    (= 3 (length Args))
+    @
     (kv-send-commands (list "GET" (list *KV_gpgid)))
     (kv-receive) ]
 
 [de kv-encrypt (Args)
   (if (and
-        (cdr (kv-encrypt-getid Cmdargs))
-        (kv-send-commands (place 3 Cmdargs (kv-encrypt-gpg (last Cmdargs) @))) )
+        (cdr (kv-encrypt-getid Args))
+        (kv-send-commands (place (length Args) Args (kv-encrypt-gpg (last Args) @))) )
       (kv-receive-data)
       "unable to send encrypted data" ]
 
@@ -72,7 +74,7 @@
 # Send commands to the server and receive a response
 [de kv-send-data (Cmdargs)
   (if *KV_encrypt
-      (kv-encrypt)
+      (kv-encrypt Cmdargs)
       (if (kv-send-commands Cmdargs)
           (if *KV_decrypt
               (kv-decrypt-gpg (kv-receive-data))
