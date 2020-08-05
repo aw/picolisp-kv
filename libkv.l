@@ -63,6 +63,7 @@
       ["HEXISTS"    (kv-cmd-hexists (caadr Request) (cadadr Request) ]
       ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
       ["HGETALL"    (kv-cmd-hgetall (caadr Request) ]
+      ["HKEYS"      (kv-cmd-hkeys (caadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
@@ -150,6 +151,10 @@
 [de kv-cmd-hgetall (Key)
   (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
         (kv-cmd-get Key) ]
+
+[de kv-cmd-hkeys (Key)
+  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+        (mapcar car (kv-value Key) ]
 
 [de kv-cmd-hset (Key Elements)
   (use *Num
