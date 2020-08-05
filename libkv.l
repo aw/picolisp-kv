@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "MSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -80,6 +80,7 @@
       ["LSET"       (kv-cmd-lset (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["LTRIM"      (kv-cmd-ltrim (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
       ["MGET"       (kv-cmd-mget (cadr Request) ]
+      ["MSET"       (kv-cmd-mset (cadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -253,6 +254,13 @@
 
 [de kv-cmd-mget (Elements)
   (mapcar kv-cmd-get Elements) ]
+
+[de kv-cmd-mset (Elements)
+  (when (and Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+        (while (cut 2 'Elements)
+          (let Str @
+            (kv-cmd-set (car Str) (cadr Str)) ) )
+        "OK" ]
 
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))

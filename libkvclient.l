@@ -52,7 +52,7 @@
 
 [de kv-encrypt-getid (Args)
   (case (length Args)
-    (3    (member (car Args) '("APPEND" "GETSET" "LPUSH" "RPUSH" "SET")))
+    (3    (member (car Args) '("APPEND" "GETSET" "LPUSH" "MSET" "RPUSH" "SET")))
     (4    (member (car Args) '("HSET" "LSET"))) )
   (and
     @
