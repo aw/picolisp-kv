@@ -78,6 +78,7 @@
       ["LREM"       (kv-cmd-lrem (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["LSET"       (kv-cmd-lset (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
       ["LTRIM"      (kv-cmd-ltrim (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
+      ["MGET"       (kv-cmd-mget (cadr Request) ]
       ["PING"       (kv-cmd-ping (caadr Request) ]
       ["RPOP"       (kv-cmd-rpop (caadr Request) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
@@ -245,6 +246,9 @@
   (let Src (kv-name Key)
     (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
           (kv-cmd-set Key (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
+
+[de kv-cmd-mget (Elements)
+  (mapcar kv-cmd-get Elements) ]
 
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
