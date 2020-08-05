@@ -62,6 +62,7 @@
       ["HDEL"       (kv-cmd-hdel (caadr Request) (cdadr Request) ]
       ["HEXISTS"    (kv-cmd-hexists (caadr Request) (cadadr Request) ]
       ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
+      ["HGETALL"    (kv-cmd-hgetall (caadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
@@ -145,6 +146,10 @@
 
 [de kv-cmd-hget (Key Field)
   (cdr (assoc Field (kv-value Key) ]
+
+[de kv-cmd-hgetall (Key)
+  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+        (kv-cmd-get Key) ]
 
 [de kv-cmd-hset (Key Elements)
   (use *Num
