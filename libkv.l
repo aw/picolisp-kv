@@ -60,6 +60,7 @@
       ["GET"        (kv-cmd-get (caadr Request) ]
       ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
       ["HDEL"       (kv-cmd-hdel (caadr Request) (cdadr Request) ]
+      ["HEXISTS"    (kv-cmd-hexists (caadr Request) (cadadr Request) ]
       ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -136,6 +137,11 @@
           (extract '((N)
                    (when (assoc N (kv-value Key)) (set (kv-name Key) (delete @ (kv-value Key))) T) )
                     Elements ]
+
+[de kv-cmd-hexists (Key Field)
+  (if (assoc Field (kv-value Key))
+      1
+      0 ]
 
 [de kv-cmd-hget (Key Field)
   (cdr (assoc Field (kv-value Key) ]
