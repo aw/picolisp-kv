@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "MSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "LTRIM" "MSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
