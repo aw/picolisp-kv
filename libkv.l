@@ -22,7 +22,7 @@
   *KV_aof_tmp   (tmp "kv.aof.tmp")
   *KV_db_lock   (tmp "kv.db.lock")
   *KV_db_tmp    (tmp "kv.db.tmp")
-  *KV_write_commands '("APPEND" "DEL" "GETSET" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
+  *KV_write_commands '("APPEND" "DEL" "GETSET" "HDEL" "HSET" "LPOP" "LPOPRPUSH" "LPUSH" "LREM" "LSET" "RPOP" "RPOPLPUSH" "RPUSH" "SET") )
 
 # INITIALIZE
 (off *KV/%stats%/connected_clients *KV/%stats%/rdb_last_bgsave_status)
@@ -59,6 +59,7 @@
       ["EXISTS"     (kv-cmd-exists (caadr Request) (cdadr Request) ]
       ["GET"        (kv-cmd-get (caadr Request) ]
       ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
+      ["HDEL"       (kv-cmd-hdel (caadr Request) (cdadr Request) ]
       ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
       ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
@@ -128,6 +129,13 @@
 
 [de kv-cmd-getset (Key Value)
   (swap (kv-name Key) Value) ]
+
+[de kv-cmd-hdel (Key Elements)
+  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+        (length
+          (extract '((N)
+                   (when (assoc N (kv-value Key)) (set (kv-name Key) (delete @ (kv-value Key))) T) )
+                    Elements ]
 
 [de kv-cmd-hget (Key Field)
   (cdr (assoc Field (kv-value Key) ]
