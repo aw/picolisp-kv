@@ -55,6 +55,7 @@ If key already exists and is a string, this command appends the value at the end
 #### Return value
 
 **Integer:** the length of the string after the append operation.
+
 **NIL:** if the key is not a string or does not exist.
 
 #### CLI example
