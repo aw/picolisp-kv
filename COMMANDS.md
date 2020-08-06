@@ -86,7 +86,7 @@ Hello World
 
 # License
 
-This documentation has been copied in part from the [Redis documentation](https://github.com/redis/redis-io), distributed under the [Creative Commons Attribution-ShareAlike 4.0 International license](https://creativecommons.org/licenses/by-sa/4.0/) license, and slightly modified to match the [PicoLisp KV](https://github.com/aw/picolisp-kv) library code.
+This documentation copies in part the [Redis documentation](https://github.com/redis/redis-io), distributed under the [Creative Commons Attribution-ShareAlike 4.0 International license](https://creativecommons.org/licenses/by-sa/4.0/) license, and is modified to match the [PicoLisp KV](https://github.com/aw/picolisp-kv) library code.
 
 This documentation is licensed under [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 
