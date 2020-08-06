@@ -52,11 +52,10 @@ Most `COMMANDS` take the exact same arguments, and return the same type of value
 
 If key already exists and is a string, this command appends the value at the end of the string.
 
-#### Return value
+#### Return values
 
-**Integer:** the length of the string after the append operation.
-
-**NIL:** if the key is not a string or does not exist.
+  * **Integer**: the length of the string after the append operation
+  * **NIL**: if key is not a string or does not exist
 
 #### CLI example
 
