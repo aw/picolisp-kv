@@ -1,6 +1,8 @@
 # Redis-inspired key/value store written in PicoLisp
 
-This program mimics functionality of a [Redis](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications with optional on-disk persistence.
+This program mimics functionality of a [Redis™](https://redis.io) in-memory database, but is designed specifically for [PicoLisp](https://picolisp.com) applications with optional on-disk persistence and encryption.
+
+> **Note:** This library **DOES NOT** use the [RESP protocol](https://redis.io/topics/protocol) and thus cannot work with the `redis-cli` or other _Redis_ clients/servers.
 
 The included `server.l` and `client.l` can be used to send and receive _"Redis-like"_ commands over TCP or UNIX named pipess.
 
@@ -15,7 +17,8 @@ The included `server.l` and `client.l` can be used to send and receive _"Redis-l
   7. [Testing](#testing)
   8. [Contributing](#contributing)
   9. [Changelog](#changelog)
-  10. [License](#license)
+  10. [Notice](#notice)
+  11. [License](#license)
 
 # Requirements
 
@@ -431,6 +434,10 @@ This library comes with a large suite of [unit and integration tests](https://gi
 # Changelog
 
 [Changelog](CHANGELOG.md)
+
+# Notice
+
+* Redis is a trademark of Redis Labs Ltd. Any rights therein are reserved to Redis Labs Ltd. Any use by me is for referential purposes only and does not indicate any sponsorship, endorsement or affiliation between Redis and me.
 
 # License
 

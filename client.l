@@ -54,8 +54,8 @@
                ("LREM key count element"            "^I^IRemove elements from a list")
                ("LSET key index element"            "^I^ISet the value of an element in a list by its index")
                ("LTRIM key start stop"              "^I^ITrim a list to the specified range")
-               ("MGET key"                          "^I^IGet the values of all the given keys")
-               ("MSET key"                          "^I^ISet multiple keys to multiple values")
+               ("MGET key [key ..]"                 "^I^IGet the values of all the given keys")
+               ("MSET key value [key value ..]"     "^I^ISet multiple keys to multiple values")
                ("PING [message]"                    "^I^IPing the server")
                ("RPOP key"                          "^I^IRemove and get the last element in a list")
                ("RPOLRPUSH source destination"      "^IRemove the last element in a list, prepend it to another list and return it")
@@ -87,7 +87,7 @@
         (when *Msg (bye 1))
         (catch 'kv-error
           (when (kv-start-client)
-                (kv-print @)
+                #(kv-print @) # don't print the "OK <name>" reply
                 (if *KV_poll
                     (loop
                       (NIL (when (kv-send-data *Cmdargs)

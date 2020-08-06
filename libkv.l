@@ -51,7 +51,7 @@
 [de kv-process (Child Request)
   (let Key (when (caadr Request) (kv-name (caadr Request)))
     (case (uppc (car Request))
-      ["APPEND"     (kv-cmd-append (caadr Request) (cdadr Request) ]
+      ["APPEND"     (kv-cmd-append (caadr Request) (cadadr Request) ]
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
       ["CLIENT"     (kv-cmd-client Child (cadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]

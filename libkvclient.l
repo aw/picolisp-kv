@@ -91,11 +91,7 @@
     (in *Sock
       (when (rd)
         (let Result @
-          (if (cdr Result)
-              (case (car Result)
-                ("message" (cdr Result))                         # good response from the server
-                (T         "unknown data"))                      # bad response from the server
-              "no data" ) ]                                      # NIL response from the server
+          (and (car Result) (= "message" @) (cdr Result) ]
 
 # Authenticate to the server by hashing the password and validating the response
 [de kv-authenticate ()
