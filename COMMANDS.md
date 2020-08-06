@@ -58,7 +58,7 @@ If key already exists and is a string, this command appends the value at the end
 
 #### CLI example
 
-```
+```bash
 ./client.l --pass yourpass EXISTS mykey
 0
 ./client.l --pass yourpass SET mykey "Hello"
@@ -71,7 +71,7 @@ Hello World
 
 #### PicoLisp example
 
-```
+```picolisp
 : (kv-send-data '("EXISTS" "mykey"))
 -> 0
 : (kv-send-data '("SET" "mykey" "Hello"))

@@ -55,7 +55,7 @@
                ("LSET key index element"            "^I^ISet the value of an element in a list by its index")
                ("LTRIM key start stop"              "^I^ITrim a list to the specified range")
                ("MGET key [key ..]"                 "^I^IGet the values of all the given keys")
-               ("MSET key value [key value ..]"     "^I^ISet multiple keys to multiple values")
+               ("MSET key value [key value ..]"     "^ISet multiple keys to multiple values")
                ("PING [message]"                    "^I^IPing the server")
                ("RPOP key"                          "^I^IRemove and get the last element in a list")
                ("RPOLRPUSH source destination"      "^IRemove the last element in a list, prepend it to another list and return it")
