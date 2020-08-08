@@ -84,7 +84,34 @@ Hello World
 : (kv-send-data '("APPEND" "doesntexist" "test"))
 -> NIL
 ```
+## BGSAVE
 
+#### BGSAVE
+
+Save the DB in background.
+
+The KV server forks, the parent continues to serve the clients, the child saves the DB
+on disk then exits.
+
+An error is returned if there is already a background save running or if there is another non-background-save process running.
+
+#### Return values
+
+  * **String**: `Background saving started` if the `BGSAVE` started correctly or `Error: DB is locked for writing` is the DB is locked.
+
+#### CLI example
+
+```bash
+./client.l --pass yourpass BGSAVE
+Background saving started
+```
+
+#### PicoLisp example
+
+```picolisp
+: (kv-send-data '("BGSAVE"))
+-> "Background saving started"
+```
 # License
 
 This documentation copies in part the [Redis documentation](https://github.com/redis/redis-io), distributed under the [Creative Commons Attribution-ShareAlike 4.0 International license](https://creativecommons.org/licenses/by-sa/4.0/) license, and is modified to match the [PicoLisp KV](https://github.com/aw/picolisp-kv) library code.
