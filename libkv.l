@@ -343,7 +343,7 @@
   (list
     (cons "db_format" (if *KV_binary "binary" "plaintext"))
     (cons "loading" *KV/%stats%/loading)
-    (cons "rdb_changes_since_last_save" (if (info *KV_aof) (lines *KV_aof) 0))
+    (cons "rdb_changes_since_last_save" (if (info *KV_aof) (in (list 'wc "-l" *KV_aof) (read)) 0))
     (cons "rdb_bgsave_in_progress" (if (info *KV_db_lock) 1 0))
     (cons "rdb_last_save_time" *KV/%stats%/rdb_last_save_time)
     (cons "rdb_last_bgsave_status" *KV/%stats%/rdb_last_bgsave_status)
