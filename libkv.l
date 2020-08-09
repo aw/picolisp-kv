@@ -563,7 +563,7 @@
     (= "AUTH" (car Auth))
     (= (kv-hash *KV_pass) (caddr Auth))
     (kv-out-client "auth" (kv-hash (pack (cadr Auth) *KV_uuid)))
-    (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "fd" *Sock)))
+    (kv-out-sibling "message" (list "IDENT" (cons "name" (cadr Auth)) (cons "addr" *Adr) (cons "port" *SPort) (cons "fd" *Sock)))
     (kv-listen-child) ]
 
 # Receive the initial auth in a child process from the client over a TCP socket
