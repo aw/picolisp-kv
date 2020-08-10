@@ -11,7 +11,7 @@ Most `COMMANDS` take the exact same arguments, and return the same type of value
 | [CLIENT KILL ID](#client-kill-id) id [id ..] | Kill the connection of a client |
 | [CLIENT LIST](#client-list) | Get the list of client connections |
 | [CONVERT](#convert) | Convert a plaintext database to binary or vice-versa |
-| [DEL](#del) key [key ..] | Delete a key |
+| [DEL](#del) key [key ..] | Delete one or more keys |
 | [EXISTS](#exists) key [key ..] | Determine if a key exists |
 | [GET](#get) key | Get the value of a key |
 | [GETSET](#getset) key value | Set the string value of a key and return its old value |
@@ -244,6 +244,38 @@ OK
 ```picolisp
 : (kv-send-data '("CONVERT"))
 -> "OK"
+```
+
+## DEL
+
+#### DEL key [key ..]
+
+Removes the specified keys. All given keys are removed whether they exist or not.
+
+#### Return values
+
+  * **Integer**: The number of keys that were removed.
+
+#### CLI example
+
+```bash
+./client.l --pass yourpass SET key1 "Hello"
+OK
+./client.l --pass yourpass SET key2 "World"
+OK
+./client.l --pass yourpass DEL key1 key2 key3
+3
+```
+
+#### PicoLisp example
+
+```picolisp
+: (kv-send-data '("SET" "key1" "Hello"))
+-> "OK"
+: (kv-send-data '("SET" "key2" "World"))
+-> "OK"
+: (kv-send-data '("DEL" "key1" "key2" "key3"))
+-> 3
 ```
 
 # License
