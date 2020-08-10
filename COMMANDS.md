@@ -131,13 +131,15 @@ The command just returns the ID of the current connection. Every connection ID h
 ```bash
 ./client.l --pass yourpass CLIENT ID
 1
+./client.l --pass yourpass CLIENT ID
+2
 ```
 
 #### PicoLisp example
 
 ```picolisp
 : (kv-send-data '("CLIENT" "ID"))
--> 2
+-> 3
 ```
 
 ## CLIENT KILL ID
@@ -148,7 +150,7 @@ The command allows to end one or more client connections by their unique `ID` fi
 
 #### Return values
 
-  * **String**: the number of clients killed.
+  * **String**: the number of clients connections ended.
 
 #### CLI example
 
@@ -202,6 +204,46 @@ id=1 pid=16929 name=4AF35825 addr=::1 port=49774 fd=7
 ```picolisp
 : (kv-send-data '("CLIENT" "LIST"))
 -> "id=2 pid=10019 name=79738D13 addr=::1 port=50956 fd=7"
+```
+
+## CONVERT
+
+#### CONVERT
+
+Convert a plaintext database to binary or vice-versa.
+
+The KV server by default saves data on disk in plaintext format, which can be modified by hand by anyone with practically no PicoLisp knowledge. The disadvantage with plaintext is its on-disk footprint is quite large compared to binary. For small datasets the difference is negligible, but it could also affect performance when first loading the database.
+
+While the server is running, it is possible to dump the database to disk using a different format, for example: if it's currently saving in plaintext, `CONVERT` will dump it to disk in binary. All future saves will also be in binary until the server is restarted, or until another `CONVERT` command is sent (which would convert it back to plaintext).
+
+Using the CLI tool:
+
+  * The default filename for binary format is `kv.bin`.
+  * The default filename for plaintext format is `kv.db`.
+
+Using the PicoLisp library:
+
+The database filename can be changed through the `*KV_db` variable, example `(setq *KV_db "/path/to/db.bin")`
+
+  * To enable `binary` saving in PicoLisp, use `(on *KV_binary)`
+  * To disable `binary` saving in PicoLisp, use `(off *KV_binary)`
+
+#### Return values
+
+  * **String**: `OK` if the database was converted successfully.
+
+#### CLI example
+
+```bash
+./client.l --pass yourpass CONVERT
+OK
+```
+
+#### PicoLisp example
+
+```picolisp
+: (kv-send-data '("CONVERT"))
+-> "OK"
 ```
 
 # License
