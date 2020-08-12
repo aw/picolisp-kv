@@ -49,53 +49,55 @@
 ###
 
 [de kv-process (Child Request)
-  (let Key (when (caadr Request) (kv-name (caadr Request)))
+  (let (Key (caadr Request)
+        Value (cadadr Request) )
+
     (case (uppc (car Request))
-      ["APPEND"     (kv-cmd-append (caadr Request) (cadadr Request) ]
+      ["APPEND"     (kv-cmd-append Key Value) ]
       ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
       ["CLIENT"     (kv-cmd-client Child (cadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]
-      ["DEL"        (kv-cmd-del (caadr Request) (cdadr Request) ]
-      ["EXISTS"     (kv-cmd-exists (caadr Request) (cdadr Request) ]
-      ["GET"        (kv-cmd-get (caadr Request) ]
-      ["GETSET"     (kv-cmd-getset (caadr Request) (cadadr Request) ]
-      ["HDEL"       (kv-cmd-hdel (caadr Request) (cdadr Request) ]
-      ["HEXISTS"    (kv-cmd-hexists (caadr Request) (cadadr Request) ]
-      ["HGET"       (kv-cmd-hget (caadr Request) (cadadr Request) ]
-      ["HGETALL"    (kv-cmd-hgetall (caadr Request) ]
-      ["HKEYS"      (kv-cmd-hkeys (caadr Request) ]
-      ["HLEN"       (kv-cmd-hlen (caadr Request) ]
-      ["HMGET"      (kv-cmd-hmget (caadr Request) (cdadr Request) ]
-      ["HSET"       (kv-cmd-hset (caadr Request) (cdadr Request) ]
-      ["HSTRLEN"    (kv-cmd-hstrlen (caadr Request) (cadadr Request) ]
-      ["HVALS"      (kv-cmd-hvals (caadr Request) ]
+      ["DEL"        (kv-cmd-del Key (cdadr Request) ]
+      ["EXISTS"     (kv-cmd-exists Key (cdadr Request) ]
+      ["GET"        (kv-cmd-get Key) ]
+      ["GETSET"     (kv-cmd-getset Key Value) ]
+      ["HDEL"       (kv-cmd-hdel Key (cdadr Request) ]
+      ["HEXISTS"    (kv-cmd-hexists Key Value) ]
+      ["HGET"       (kv-cmd-hget Key Value) ]
+      ["HGETALL"    (kv-cmd-hgetall Key) ]
+      ["HKEYS"      (kv-cmd-hkeys Key) ]
+      ["HLEN"       (kv-cmd-hlen Key) ]
+      ["HMGET"      (kv-cmd-hmget Key (cdadr Request) ]
+      ["HSET"       (kv-cmd-hset Key (cdadr Request) ]
+      ["HSTRLEN"    (kv-cmd-hstrlen Key Value) ]
+      ["HVALS"      (kv-cmd-hvals Key) ]
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
-      ["INFO"       (kv-cmd-info (caadr Request) ]
-      ["LINDEX"     (kv-cmd-lindex (caadr Request) (format (cadadr Request) ]
-      ["LLEN"       (kv-cmd-strlen (caadr Request) ]
-      ["LPOP"       (kv-cmd-lpop (caadr Request) ]
-      ["LPOPRPUSH"  (kv-cmd-lpoprpush (caadr Request) (cadadr Request) ]
-      ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
-      ["LRANGE"     (kv-cmd-lrange (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
-      ["LREM"       (kv-cmd-lrem (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
-      ["LSET"       (kv-cmd-lset (caadr Request) (format (cadadr Request)) (; (cadr Request) 3) ]
-      ["LTRIM"      (kv-cmd-ltrim (caadr Request) (format (cadadr Request)) (format (; (cadr Request) 3) ]
+      ["INFO"       (kv-cmd-info Key) ]
+      ["LINDEX"     (kv-cmd-lindex Key (format Value) ]
+      ["LLEN"       (kv-cmd-strlen Key) ]
+      ["LPOP"       (kv-cmd-lpop Key) ]
+      ["LPOPRPUSH"  (kv-cmd-lpoprpush Key Value) ]
+      ["LPUSH"      (kv-cmd-lpush Key (cdadr Request) ]
+      ["LRANGE"     (kv-cmd-lrange Key (format Value) (format (; (cadr Request) 3) ]
+      ["LREM"       (kv-cmd-lrem Key (format Value) (; (cadr Request) 3) ]
+      ["LSET"       (kv-cmd-lset Key (format Value) (; (cadr Request) 3) ]
+      ["LTRIM"      (kv-cmd-ltrim Key (format Value) (format (; (cadr Request) 3) ]
       ["MGET"       (kv-cmd-mget (cadr Request) ]
       ["MSET"       (kv-cmd-mset (cadr Request) ]
-      ["PING"       (kv-cmd-ping (caadr Request) ]
-      ["RPOP"       (kv-cmd-rpop (caadr Request) ]
-      ["RPOPLPUSH"  (kv-cmd-rpoplpush (caadr Request) (cadadr Request) ]
-      ["RPUSH"      (kv-cmd-rpush (caadr Request) Key (cdadr Request) ]
+      ["PING"       (kv-cmd-ping Key) ]
+      ["RPOP"       (kv-cmd-rpop Key) ]
+      ["RPOPLPUSH"  (kv-cmd-rpoplpush Key Value) ]
+      ["RPUSH"      (kv-cmd-rpush Key (cdadr Request) ]
       ["SAVE"       (kv-save-db) ]
-      ["SET"        (kv-cmd-set (caadr Request) (cadadr Request) ]
-      ["STRLEN"     (kv-cmd-strlen (caadr Request) ]
+      ["SET"        (kv-cmd-set Key Value) ]
+      ["STRLEN"     (kv-cmd-strlen Key) ]
       [T            "Error: Unknown command" ] ]
 
 [de kv-cmd-flushall ()
   (mapcar '((N) (off (kv-name N))) Keys) ]
 
 [de kv-cmd-append (Key Value)
-  (when (and Key Value (str? (kv-value Key))  (not (pre? "%stats%/" Key)))
+  (when (and Key Value (str? (kv-value Key)) (not (pre? "%stats%/" Key)))
         (set (kv-name Key) (pack (kv-value Key) Value))
         (push1 (kv-name "%stats%/keys") Key)
         (length (kv-value Key) ]
@@ -209,7 +211,7 @@
 
 [de kv-cmd-lindex (Key Index)
   (let Src (kv-name Key)
-    (when (and Src (lst? (kv-value Key)) (num? Index))
+    (when (and Key Index (lst? (kv-value Key)) (num? Index))
           (cond
             ((= -1 Index)   (last (car Src)))
             ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
@@ -220,18 +222,18 @@
 
 [de kv-cmd-lpop (Key)
   (let Src (kv-name Key)
-    (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
+    (when (and Key (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-lpop Src))
         (let Result @
-          (kv-cmd-rpush Dst (kv-name Dst) (list Result))
+          (kv-cmd-rpush Dst (list Result))
           Result ]
 
-[de kv-cmd-lpush (Key Dst Elements)
-  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+[de kv-cmd-lpush (Key Elements)
+  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
         (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
-        (length (car Dst) ]
+        (length (kv-value Key) ]
 
 [de kv-cmd-lrange (Key Start Stop)
   (let Src (kv-name Key)
@@ -271,7 +273,7 @@
 [de kv-cmd-rpoplpush (Src Dst)
   (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
         (let Result @
-          (kv-cmd-lpush Dst (kv-name Dst) (list Result))
+          (kv-cmd-lpush Dst (list Result))
           Result ]
 
 [de kv-cmd-ping (Msg)
@@ -281,10 +283,10 @@
   (let Src (kv-name Key)
     (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
 
-[de kv-cmd-rpush (Key Dst Elements)
-  (when (and Dst Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+[de kv-cmd-rpush (Key Elements)
+  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
         (kv-cmd-set Key (append (kv-value Key) Elements))
-        (length (car Dst) ]
+        (length (kv-value Key) ]
 
 [de kv-cmd-set (Key Value)
   (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
