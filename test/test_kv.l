@@ -37,7 +37,6 @@
   (assert-equal "task6" (kv-cmd-lindex "tasks" -2) "[LINDEX] Should return the penultimate key")
   (assert-nil (kv-cmd-lindex "tasks" 10) "[LINDEX] Should return NIL if no value exists at the index")
   (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
-  (assert-equal "tasks" (kv-cmd-lindex "%stats%/keys" 0) "[LINDEX] Should return the name of the key in the keys list")
   (assert-equal "task1" (kv-cmd-lpop "tasks") "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   (assert-equal 1 (kv-cmd-lrem "tasks" 3 "task3") "[LREM] Should return the number of keys removed from the task list")
@@ -64,7 +63,6 @@
   (assert-equal "task2" (kv-cmd-lindex "tasks" -2) "[LINDEX] Should return the penultimate key")
   (assert-nil (kv-cmd-lindex "tasks" 10) "[LINDEX] Should return NIL if no value exists at the index")
   (assert-equal 1 (kv-cmd-llen (kv-name "%stats%/keys")) "[LLEN] Should return the number of keys in the keys list")
-  (assert-equal "tasks" (kv-cmd-lindex "%stats%/keys" 0) "[LINDEX] Should return the name of the key in the keys list")
   (assert-equal "task7" (kv-cmd-lpop "tasks") "[LPOP] Should return the first value added to the tasks list")
   (assert-equal 6 (kv-cmd-llen (kv-name "tasks")) "[LLEN] Should return the number of keys remaining in the tasks list")
   ]
@@ -91,7 +89,6 @@
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
   (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-equal '12345 (cdr (assoc "pid" (cadr (kv-cmd-lindex "%stats%/connected_clients" 0)))) "[LINDEX] Should return the info of the connected client")
   (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
   ]
 

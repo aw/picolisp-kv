@@ -97,7 +97,7 @@
   (mapcar '((N) (off (kv-name N))) Keys) ]
 
 [de kv-cmd-append (Key Value)
-  (when (and Key Value (str? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (and (kv-check-key Key 'str) Value)
         (set (kv-name Key) (pack (kv-value Key) Value))
         (push1 (kv-name "%stats%/keys") Key)
         (length (kv-value Key) ]
@@ -126,8 +126,9 @@
   (setq *KV_db (pack (dirname *KV_db) (glue "." (append (head -1 (split (chop *KV_db) ".")) (if *KV_binary '(("b" "i" "n")) '(("d" "b")))))))
   (kv-save-db) ]
 
+# TODO: optimize the mass delete of keys
 [de kv-cmd-del (Key Elements)
-  (if (and Key (not (pre? "%stats%/" Key)))
+  (if (kv-check-key Key)
       (length (wipe (extract '((N) (unless (pre? "%stats%/" N) (kv-name N))) (conc (list Key) Elements))))
       0 ]                                                      # return 0 if no key is specified
 
@@ -143,7 +144,7 @@
   (swap (kv-name Key) Value) ]
 
 [de kv-cmd-hdel (Key Elements)
-  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
         (length
           (extract '((N)
                    (when (assoc N (kv-value Key)) (set (kv-name Key) (delete @ (kv-value Key))) T) )
@@ -158,15 +159,15 @@
   (cdr (assoc Field (kv-value Key) ]
 
 [de kv-cmd-hgetall (Key)
-  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (kv-check-key Key 'lst)
         (extract '((N) (when (lst? N) N)) (kv-value Key) ]
 
 [de kv-cmd-hkeys (Key)
-  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (kv-check-key Key 'lst)
         (extract '((N) (when (lst? N) (car N))) (kv-value Key) ]
 
 [de kv-cmd-hlen (Key)
-  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (kv-check-key Key 'lst)
         (length (kv-value Key) ]
 
 [de kv-cmd-hmget (Key Elements)
@@ -175,7 +176,7 @@
 [de kv-cmd-hset (Key Elements)
   (use *Num
     (zero *Num)
-    (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+    (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
           [while (cut 2 'Elements)
             (let Str @
               (when (cadr Str)
@@ -186,11 +187,11 @@
           *Num ]
 
 [de kv-cmd-hstrlen (Key Field)
-  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (kv-check-key Key 'lst)
         (length (cdr (assoc Field (kv-value Key) ]
 
 [de kv-cmd-hvals (Key)
-  (when (and Key (lst? (kv-value Key)) (not (pre? "%stats%/" Key)))
+  (when (kv-check-key Key 'lst)
         (extract '((N) (when (lst? N) (cdr N))) (kv-value Key) ]
 
 [de kv-cmd-ident (Child Elements)
@@ -211,7 +212,7 @@
 
 [de kv-cmd-lindex (Key Index)
   (let Src (kv-name Key)
-    (when (and Key Index (lst? (kv-value Key)) (num? Index))
+    (when (and (kv-check-key Key 'lst) Index (num? Index))
           (cond
             ((= -1 Index)   (last (car Src)))
             ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
@@ -222,27 +223,27 @@
 
 [de kv-cmd-lpop (Key)
   (let Src (kv-name Key)
-    (when (and Key (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (pop Src) ]
+    (when (kv-check-key Key 'lst) (pop Src) ]
 
 [de kv-cmd-lpoprpush (Src Dst)
-  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-lpop Src))
+  (when (and (kv-check-key Src 'lst) (kv-check-key Dst) (kv-cmd-lpop Src))
         (let Result @
           (kv-cmd-rpush Dst (list Result))
           Result ]
 
 [de kv-cmd-lpush (Key Elements)
-  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
         (kv-cmd-set Key (append (reverse Elements) (kv-value Key)))
         (length (kv-value Key) ]
 
 [de kv-cmd-lrange (Key Start Stop)
   (let Src (kv-name Key)
-    (when (and Key Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (when (and (kv-check-key Key 'lst) Start Stop (ge0 Start) (ge0 Stop))
           (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-lrem (Key Count Element)
   (let Src (kv-name Key)
-    (if (and Key Count Element (ge0 Count) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (if (and (kv-check-key Key 'lst) Count Element (ge0 Count))
         (let Len (length (kv-value Key))
           (cond
             ((= 0 Count)  (del Element Src T))
@@ -252,26 +253,26 @@
 
 [de kv-cmd-lset (Key Index Element)
   (let Src (kv-name Key)
-    (when (and Key Index Element (lst? (kv-value Key)) (ge0 Index) (< Index (length (kv-value Key)))  (not (pre? "*KV/%stats%/" Src)))
+    (when (and (kv-check-key Key 'lst) Index Element (ge0 Index) (< Index (length (kv-value Key))))
           (kv-cmd-set Key (place (+ 1 Index) (kv-value Key) Element) ]
 
 [de kv-cmd-ltrim (Key Start Stop)
   (let Src (kv-name Key)
-    (when (and Key Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (when (and (kv-check-key Key 'lst) Start Stop (ge0 Start) (ge0 Stop))
           (kv-cmd-set Key (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-mget (Elements)
   (mapcar kv-cmd-get Elements) ]
 
 [de kv-cmd-mset (Elements)
-  (when (and Elements (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and Elements (lst? Elements))
         (while (cut 2 'Elements)
           (let Str @
             (kv-cmd-set (car Str) (cadr Str)) ) )
         "OK" ]
 
 [de kv-cmd-rpoplpush (Src Dst)
-  (when (and Src Dst (not (pre? "*KV/%stats%/" Src)) (not (pre? "%stats%/" Dst)) (kv-cmd-rpop Src))
+  (when (and (kv-check-key Src 'lst) (kv-check-key Dst) (kv-cmd-rpop Src))
         (let Result @
           (kv-cmd-lpush Dst (list Result))
           Result ]
@@ -281,21 +282,29 @@
 
 [de kv-cmd-rpop (Key)
   (let Src (kv-name Key)
-    (when (and Key (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
+    (when (kv-check-key Key 'lst) (rot (kv-value Key)) (pop Src) ]
 
 [de kv-cmd-rpush (Key Elements)
-  (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
+  (when (and (kv-check-key Key 'lst) Elements (lst? Elements))
         (kv-cmd-set Key (append (kv-value Key) Elements))
         (length (kv-value Key) ]
 
 [de kv-cmd-set (Key Value)
-  (when (and Key Value (not (pre? "%stats%/" Key)) (set (kv-name Key) Value))
+  (when (and (kv-check-key Key) Value (set (kv-name Key) Value))
         (push1 (kv-name "%stats%/keys") Key)                   # keep a list of all the keys
         "OK" ]
 
 [de kv-cmd-strlen (Key)
   (when Key
        (length (kv-value Key) ]
+
+[de kv-check-key (Key Type)
+  (and Key (not (pre? "%stats%/" Key))
+    (case Type
+      ("lst" (lst? (kv-value Key)))
+      ("str" (str? (kv-value Key)))
+      ("num" (num? (kv-value Key)))
+      (T T) ]
 
 [de kv-name (Name)
   (any (pack "*KV/" Name) ]
