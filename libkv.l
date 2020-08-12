@@ -237,12 +237,12 @@
 
 [de kv-cmd-lrange (Key Start Stop)
   (let Src (kv-name Key)
-    (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (when (and Key Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
           (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-lrem (Key Count Element)
   (let Src (kv-name Key)
-    (if (and Src Count Element (ge0 Count) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (if (and Key Count Element (ge0 Count) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
         (let Len (length (kv-value Key))
           (cond
             ((= 0 Count)  (del Element Src T))
@@ -252,12 +252,12 @@
 
 [de kv-cmd-lset (Key Index Element)
   (let Src (kv-name Key)
-    (when (and Src (lst? (kv-value Key)) (ge0 Index) (< Index (length (kv-value Key)))  (not (pre? "*KV/%stats%/" Src)))
+    (when (and Key Index Element (lst? (kv-value Key)) (ge0 Index) (< Index (length (kv-value Key)))  (not (pre? "*KV/%stats%/" Src)))
           (kv-cmd-set Key (place (+ 1 Index) (kv-value Key) Element) ]
 
 [de kv-cmd-ltrim (Key Start Stop)
   (let Src (kv-name Key)
-    (when (and Src Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
+    (when (and Key Start Stop (ge0 Start) (ge0 Stop) (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src)))
           (kv-cmd-set Key (head (+ 1 (- Stop Start)) (nth (kv-value Key) (+ 1 Start) ]
 
 [de kv-cmd-mget (Elements)
@@ -281,7 +281,7 @@
 
 [de kv-cmd-rpop (Key)
   (let Src (kv-name Key)
-    (when (and Src (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
+    (when (and Key (lst? (kv-value Key)) (not (pre? "*KV/%stats%/" Src))) (rot (kv-value Key)) (pop Src) ]
 
 [de kv-cmd-rpush (Key Elements)
   (when (and Key Elements (lst? (kv-value Key)) (lst? Elements) (not (pre? "%stats%/" Key)))
