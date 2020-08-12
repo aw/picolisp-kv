@@ -72,7 +72,7 @@
       ["IDENT"      (kv-cmd-ident Child (cdr Request) ]
       ["INFO"       (kv-cmd-info (caadr Request) ]
       ["LINDEX"     (kv-cmd-lindex (caadr Request) (format (cadadr Request) ]
-      ["LLEN"       (kv-cmd-llen Key) ]
+      ["LLEN"       (kv-cmd-strlen (caadr Request) ]
       ["LPOP"       (kv-cmd-lpop (caadr Request) ]
       ["LPOPRPUSH"  (kv-cmd-lpoprpush (caadr Request) (cadadr Request) ]
       ["LPUSH"      (kv-cmd-lpush (caadr Request) Key (cdadr Request) ]
@@ -292,7 +292,8 @@
         "OK" ]
 
 [de kv-cmd-strlen (Key)
-  (length (kv-value Key) ]
+  (when Key
+       (length (kv-value Key) ]
 
 [de kv-name (Name)
   (any (pack "*KV/" Name) ]
