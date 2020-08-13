@@ -221,7 +221,7 @@ Using the CLI tool:
   * The default filename for binary format is `kv.bin`.
   * The default filename for plaintext format is `kv.db`.
 
-Using the PicoLisp library:
+Using the PicoLisp server library `libkv.l`:
 
 The database filename can be changed through the `*KV_db` variable, example `(setq *KV_db "/path/to/db.bin")`
 
@@ -282,6 +282,6 @@ OK
 
 This documentation copies in part the [Redis documentation](https://github.com/redis/redis-io), distributed under the [Creative Commons Attribution-ShareAlike 4.0 International license](https://creativecommons.org/licenses/by-sa/4.0/) license, and is modified to match the [PicoLisp KV](https://github.com/aw/picolisp-kv) library code.
 
-This documentation is licensed under [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
+This documentation is licensed under [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Copyright (c) 2020 Alexander Williams, On-Prem <license@on-premises.com>
