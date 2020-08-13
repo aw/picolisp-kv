@@ -568,7 +568,7 @@
 [de kv-hash (String)
   (hash String) ]
 
-# Authenticate the client via handshake, and authorizate with a hashed password
+# Authenticate the client via handshake, and authorize with a hashed password
 [de kv-auth (Auth)
   (and
     (lst? Auth)
