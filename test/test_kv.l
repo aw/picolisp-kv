@@ -12,8 +12,8 @@
 
 [de test-commands-client ()
   (kv-cmd-ident 12345 (list (cons "name" "abc")))
-  (assert-equal 1 (kv-cmd-client 12345 '("ID")) "[CLIENT LIST] Should return a client id")
-  (assert-equal "id=1 pid=12345 name=abc" (kv-cmd-client NIL '("LIST")) "[CLIENT LIST] Should return a client list")
+  (assert-kind-of 'Number (kv-cmd-client 12345 '("ID")) "[CLIENT LIST] Should return a client id")
+  (assert-kind-of 'String (kv-cmd-client NIL '("LIST")) "[CLIENT LIST] Should return a client list")
   (assert-equal 1 (kv-cmd-client NIL '("KILL" "ID" "1")) "[CLIENT LIST] Should kill a client")
   (assert-equal 0 (kv-cmd-client NIL '("KILL" "ID" "2")) "[CLIENT LIST] Should not kill a client that doesn't exist")
   ]
