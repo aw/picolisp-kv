@@ -69,6 +69,8 @@
 [de test-commands-process ()
   (assert-equal "Error: Unknown command" (kv-process 12345 (list "UNKNOWN")) "[PROCESS] Should return an ERROR message if the command is unknown")
   (assert-equal "OK" (kv-process 12345 (list "SET" '("processkey2" "processvalue"))) "[PROCESS] Should process the SET command")
+  (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkeytest" 11 22 33))) "[PROCESS] Should process the RPUSH command")
+  (assert-equal 3 (kv-process 12345 (list "LLEN" '("processkeytest"))) "[PROCESS] Should process the LLEN command")
   (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 
