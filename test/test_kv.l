@@ -60,23 +60,7 @@
 
 [de test-commands-process ()
   (assert-equal "Error: Unknown command" (kv-process 12345 (list "UNKNOWN")) "[PROCESS] Should return an ERROR message if the command is unknown")
-  (assert-equal 1 (kv-process 12345 (list "DEL" '("processkey"))) "[PROCESS] Should process the DEL command")
   (assert-equal "OK" (kv-process 12345 (list "SET" '("processkey2" "processvalue"))) "[PROCESS] Should process the SET command")
-  (assert-equal 15 (kv-process 12345 (list "APPEND" '("processkey2" "hey"))) "[PROCESS] Should process the APPEND command")
-  (assert-equal "processvaluehey" (car (kv-process 12345 (list "GET" '("processkey2")))) "[PROCESS] Should process the GET command")
-  (assert-equal 3 (kv-process 12345 (list "RPUSH" '("processkey" 11 22 33))) "[PROCESS] Should process the RPUSH command")
-  (assert-equal '(11) (kv-process 12345 (list "LRANGE" '("processkey" "0" "0"))) "[PROCESS] Should process the LRANGE command")
-  (assert-equal "OK 007" (kv-process 12345 (list "IDENT" (list "name" "007"))) "[PROCESS] Should process the IDENT command")
-  (assert-kind-of 'String (kv-process 12345 (list "INFO")) "[PROCESS] Should process the INFO command")
-  (assert-equal 22 (kv-process 12345 (list "LINDEX" '("processkey" "1"))) "[PROCESS] Should process the LINDEX command")
-  (assert-equal 3 (kv-process 12345 (list "LLEN" '("processkey"))) "[PROCESS] Should process the LLEN command")
-  (assert-equal 11 (kv-process 12345 (list "LPOP" '("processkey"))) "[PROCESS] Should process the LPOP command")
-  (assert-equal 22 (kv-process 12345 (list "LPOPRPUSH" '("processkey" "processdest"))) "[PROCESS] Should process the LPOPRPUSH command")
-  (assert-equal 3 (kv-process 12345 (list "LPUSH" '("processkey3" 44 55 66))) "[PROCESS] Should process the LPUSH command")
-  (assert-equal 33 (kv-process 12345 (list "RPOP" '("processkey"))) "[PROCESS] Should process the RPOP command")
-  (assert-equal 1 (kv-process 12345 (list "LREM" '("processkey3" "2" 44))) "[PROCESS] Should process the LREM command")
-  (assert-equal "OK" (kv-process 12345 (list "LSET" '("processkey3" "1" "77"))) "[PROCESS] Should process the LSET command")
-  (assert-equal "OK" (kv-process 12345 (list "LTRIM" '("processkey3" "0" "1"))) "[PROCESS] Should process the LTRIM command")
   (assert-kind-of 'String (kv-process 12345 (list "info" '("server"))) "[PROCESS] Should process a lowercase command")
   ]
 
