@@ -73,8 +73,6 @@
   ]
 
 [execute
-  (prinl "^J  Testing Key/Value Hashes^J")
-
   '(test-commands-hdel)
   '(test-commands-hexists)
   '(test-commands-hget)
