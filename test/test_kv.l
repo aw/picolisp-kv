@@ -27,6 +27,10 @@
   (assert-equal "testvalue" (kv-cmd-get "testkey") "[GET] Should return the value of the key")
   (assert-equal "testvalue" (kv-cmd-getset "testkey" "newvalue") "[GETSET] Should return the old value")
   (assert-equal "newvalue" (kv-cmd-get "testkey") "[GETSET] Should return the new value")
+  (assert-nil (kv-cmd-mset "key1" "val1" "key2" "val2") "[MSET] Should return NIL if key/values aren't in a list")
+  (assert-equal "OK" (kv-cmd-mset '("key1" "val1" "key2" "val2")) "[MSET] Should set multiple keys and values and return OK")
+  (assert-nil (kv-cmd-mget "key1" "key2") "[MGET] Should return NIL if key aren't in a list")
+  (assert-equal '("val1" "val2") (kv-cmd-mget '("key1" "key2")) "[MGET] Should return multiple values in a list")
   ]
 
 [de test-commands-stats-failures ()
@@ -108,6 +112,13 @@
   (assert-equal "Hello" (kv-cmd-ping "Hello") "[PING] Should return Hello")
   ]
 
+[de test-commands-strlen ()
+  (kv-cmd-set "lengthkey" "hello")
+  (assert-nil (kv-cmd-strlen) "[STRLEN] Should return NIL if the key isn't provided")
+  (assert-equal 0 (kv-cmd-strlen "nonexists") "[STRLEN] Should return 0 if the key doesn't exist")
+  (assert-equal 5 (kv-cmd-strlen "lengthkey") "[STRLEN] Should return the length of the key's value")
+  ]
+
 [execute
   (prinl "^J  Testing Key/Value^J")
 
@@ -123,4 +134,5 @@
   '(test-commands-bgsave)
   '(test-commands-exists)
   '(test-commands-ping)
+  '(test-commands-strlen)
   ]
