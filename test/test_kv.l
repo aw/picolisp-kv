@@ -10,6 +10,14 @@
   (assert-equal "helloworld" (kv-cmd-get "appendkey") "[GET] Should return the value of the key")
   ]
 
+[de test-commands-client ()
+  (kv-cmd-ident 12345 (list (cons "name" "abc")))
+  (assert-equal 1 (kv-cmd-client 12345 '("ID")) "[CLIENT LIST] Should return a client id")
+  (assert-equal "id=1 pid=12345 name=abc" (kv-cmd-client NIL '("LIST")) "[CLIENT LIST] Should return a client list")
+  (assert-equal 1 (kv-cmd-client NIL '("KILL" "ID" "1")) "[CLIENT LIST] Should kill a client")
+  (assert-equal 0 (kv-cmd-client NIL '("KILL" "ID" "2")) "[CLIENT LIST] Should not kill a client that doesn't exist")
+  ]
+
 [de test-commands-get-set ()
   (assert-nil (kv-cmd-set) "[SET] Should return NIL if no key is provided")
   (assert-nil (kv-cmd-set "testkey") "[SET] Should return NIL if no value is provided")
@@ -103,6 +111,7 @@
 
   '(assert-equal 0 (kv-cmd-llen (kv-name "nonexistant")) "[LLEN] Should return 0 if the key doesn't exist")
   '(test-commands-append)
+  '(test-commands-client)
   '(test-commands-del)
   '(test-commands-get-set)
   '(test-commands-ident)
