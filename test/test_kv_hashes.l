@@ -72,6 +72,34 @@
   (assert-equal '(NIL) (kv-cmd-hmget "hashmgetkey" '("three")) "[HMGET] Should return an empty list if the field has no value")
   ]
 
+[de test-commands-hset ()
+  (kv-cmd-set "hashkeyz" "string")
+  (assert-nil (kv-cmd-hset) "[HSET] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-hset "hashkeyz" '("one" 1)) "[HSET] Should return NIL if the key is not a list")
+  (assert-nil (kv-cmd-hset "hashkeyz" "one" "two") "[HSET] Should return NIL if the fields is not a list")
+  (assert-nil (kv-cmd-hset "hashkeyzmissing") "[HSET] Should return NIL if the key doesn't exist")
+  (assert-equal 2 (kv-cmd-hset "hashsetkey" '("one" "1" "two" "2")) "[HSET] Should return the number of fields added")
+  ]
+
+[de test-commands-hstrlen ()
+  (kv-cmd-hset "hashstrlenkey" '("one" "hello" "two" "world"))
+  (kv-cmd-set "hashkeyz" "string")
+  (assert-nil (kv-cmd-hstrlen) "[HSTRLEN] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-hstrlen "hashkeyz") "[HSTRLEN] Should return NIL if the key is not a list")
+  (assert-equal 0 (kv-cmd-hstrlen "hashstrlenkey") "[HSTRLEN] Should return 0 if the field is not provided")
+  (assert-equal 0 (kv-cmd-hstrlen "hashkeyzmissing") "[HSTRLEN] Should return 0 if the key doesn't exist")
+  (assert-equal 5 (kv-cmd-hstrlen "hashstrlenkey" "one") "[HSTRLEN] Should return the length of the string")
+  ]
+
+[de test-commands-hvals ()
+  (kv-cmd-hset "hashvalskey" '("one" "1" "two" "2"))
+  (kv-cmd-set "hashkeyz" "string")
+  (assert-nil (kv-cmd-hvals) "[HVALS] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-hvals "hashkeyz") "[HVALS] Should return NIL if the key is not a list")
+  (assert-nil (kv-cmd-hvals "hashkeyzmissing") "[HVALS] Should return NIL if the key doesn't exist")
+  (assert-equal '("1" "2") (kv-cmd-hvals "hashvalskey") "[HVALS] Should return all values")
+  ]
+
 [execute
   '(test-commands-hdel)
   '(test-commands-hexists)
@@ -80,4 +108,7 @@
   '(test-commands-hkeys)
   '(test-commands-hlen)
   '(test-commands-hmget)
+  '(test-commands-hset)
+  '(test-commands-hstrlen)
+  '(test-commands-hvals)
   ]
