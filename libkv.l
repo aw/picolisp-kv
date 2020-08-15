@@ -218,9 +218,6 @@
             ((lt0 Index)    (last (head (+ 1 Index) (car Src))))
             (T              (get (car Src) (+ 1 Index) ]
 
-[de kv-cmd-llen (Key)
-  (length (car Key) ]
-
 [de kv-cmd-lpop (Key)
   (let Src (kv-name Key)
     (when (kv-check-key Key 'lst) (pop Src) ]

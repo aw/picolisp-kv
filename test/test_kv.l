@@ -48,7 +48,7 @@
   (assert-nil (kv-cmd-ident 12345) "[IDENT] Should return NIL if no elements are provided")
   (assert-nil (kv-cmd-ident 12345 "abc") "[IDENT] Should return NIL if elements aren't a list")
   (assert-equal "OK abc" (kv-cmd-ident 12345 (list (cons "name" "abc"))) "[IDENT] Should return OK with the client ID")
-  (assert-kind-of 'Number (kv-cmd-llen (kv-name "%stats%/connected_clients")) "[LLEN] Should show only 1 connected client")
+  (assert-kind-of 'Number (kv-cmd-strlen "%stats%/connected_clients") "[LLEN] Should show only 1 connected client")
   ]
 
 [de test-commands-info ()
@@ -65,8 +65,8 @@
   (kv-cmd-rpush "delkey2" '(0 0 1 1 0 1 0 0))
   (kv-cmd-rpush "delkey3" '(0 0 1 1 0 1 1 0))
   (assert-equal 4 (kv-cmd-del "delkey2" (list "delkey3" "delkey4" "delkey5")) "[DEL] Should delete multiple keys and return how many were deleted")
-  (assert-equal 0 (kv-cmd-llen (kv-name "delkey2")) "[LLEN] Should confirm if delkey2 was deleted")
-  (assert-equal 0 (kv-cmd-llen (kv-name "delkey3")) "[LLEN] Should confirm if delkey3 was deleted")
+  (assert-equal 0 (kv-cmd-strlen "delkey2") "[LLEN] Should confirm if delkey2 was deleted")
+  (assert-equal 0 (kv-cmd-strlen "delkey3") "[LLEN] Should confirm if delkey3 was deleted")
   (assert-equal 0 (kv-cmd-del) "[DEL] Should not delete a key that isn't provided")
   ]
 
@@ -122,7 +122,7 @@
 [execute
   (prinl "^J  Testing Key/Value^J")
 
-  '(assert-equal 0 (kv-cmd-llen (kv-name "nonexistant")) "[LLEN] Should return 0 if the key doesn't exist")
+  '(assert-equal 0 (kv-cmd-strlen "nonexistant") "[LLEN] Should return 0 if the key doesn't exist")
   '(test-commands-append)
   '(test-commands-client)
   '(test-commands-del)
