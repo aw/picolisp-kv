@@ -125,18 +125,22 @@ The client handles authentication, identification, and sending of _"Redis-like"_
 # client.l
 Usage:                    ./client.l --pass <pass> COMMAND [arguments]
 
-Example:                  ./client.l --pass foobared --port 6378 INFO server
+Example:                  ./client.l --pass foobared --encrypt SET mysecret -- <(echo 'mypass')
 
 Options:
 --help                    Show this help message and exit
+--commands                Show the full list of commands and exit
 
---name <name>             Easily identifiable client name (default: randomly generated)
+--decrypt                 Enable decryption of values using a GPG public key (default: disabled)
+--encrypt                 Enable encryption of values using a GPG public key (default: disabled)
+--name  <name>            Easily identifiable client name (default: randomly generated)
 --host  <host>            Hostname or IP of the key/value server (default: localhost)
 --pass  <data>            Password used to access the server (required)
 --poll  <seconds>         Number of seconds for polling the key/value server (default: don't poll)
 --port  <port>            TCP port of the key/value server (default: 6378)
+-- STDIN                  Reads an argument from STDIN
 
-  COMMAND LIST              Commands are case-insensitive and don't always require arguments
+COMMAND LIST              Commands are case-insensitive and don't always require arguments
 
   APPEND key value          		Append a value to a key
   BGSAVE                    		Asynchronously save the dataset to disk
