@@ -255,7 +255,6 @@ Similar to [Redis](https://redis.io/topics/persistence), this database implement
   * The database snapshot on disk is the most complete and important data, and should be backed up regularly.
   * _fsync_ is not managed by the database, so the server admin must ensure AOF log writes are actually persisted to disk.
   * The AOF on-disk format is **always plaintext**, to allow easy debugging and repair of a corrupt entry.
-  * The AOF is opened for writing when the server is started, and closed only when the server is stopped (similar to web server log files). This lowers overhead of appending to the log, but requires care to avoid altering it while the server is running.
   * The `SAVE` and `BGSAVE` commands can still be sent even if persistence is disabled. This will dump the in-memory data to disk as if persistence was enabled.
 
 ## How persistence is implemented
@@ -267,11 +266,10 @@ Here we'll assume persistence was previously enabled and data has already been w
   3. If the AOF contains some entries, it is fully replayed to memory
   4. The DB is saved once more to disk and the AOF gets wiped
   5. A timer is started to perform periodic background DB saves
-  6. The AOF is opened for writes, and every new client connection sends the command to the AOF
+  6. Every new client connection sends the command to the AOF
   7. When a `BGSAVE` (non-blocking) command is received, a temporay copy of the AOF is made, the current AOF is wiped, and a background process is forked to save the DB to disk
-  8. When a `SAVE` (blocking) command is received, the in-memory DB is saved to disk and the AOF is wiped.
-  9. A backup of the DB file is always made before overwriting the current DB file.
-  10. To help handle concurrency and persistence, temporary files are named `kv.db.lock`, `kv.db.tmp`, `kv.aof.lock`, and `kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
+  8. A backup of the DB file is always made before overwriting the current DB file.
+  9. To help handle concurrency and persistence, temporary files are named `kv.db.lock`, `kv.db.tmp`, `kv.aof.lock`, and `kv.aof.tmp`. It's best not to modify or delete those files while the server is running. They can be safely removed while the server is stopped.
 
 ## AOF format
 
@@ -315,7 +313,7 @@ Each line is a PicoLisp list with the key in the `(car)`, and values in the `(ca
 ## Differences from Redis
 
   * Unlike _Redis_, persistence only allows specifying a time interval between each `BGSAVE`. Since the AOF is **always enabled**, it's not necessary to "save after N changes", so the config is much simpler.
-  * Log rewriting is not something that "must be done", because chances are the AOF will never grow too large. Of course that depends on the number of changes occurring between each `BGSAVE`, but even then the AOF is wiped when a `BGSAVE` is initiated (and restored/rewritten if the DB happened to be locked).
+  * Log rewriting is not something that "must be done", because chances are the AOF will never grow too large. Of course that depends on the number of changes occurring between each `BGSAVE`, but even then the AOF is wiped when a `BGSAVE` is initiated (and restored/rewritten if there was an error).
   * The DB snapshot is used to reconstruct the dataset in memory, not the AOF. The AOF is only used to replay the commands since the last DB save, which is much faster and more efficient, particularly when using `--binary`.
   * There is no danger of _losing data_ when switching from `RDB` to `AOF`, because such a concept doesn't even exist.
 
@@ -333,7 +331,7 @@ This library comes with a large suite of [unit and integration tests](https://gi
   * If you want to request support for **new features**, please consider adding them yourself (if possible) and submitting a pull-request.
   * For pull-request submissions, please follow a similar coding style as this library, and include full unit and integration tests for your new commands or features, as well as updated documentation in this [README.md](README.md).
   * Additions which require 64-bit functionality (ex: `(native)`) should conditionally check for OS support.
-  * Please try to limit code lines to 80 columns and indent comments at column 42. Of course it's acceptable to go over.
+  * Please try to limit code lines to 120 columns and indent comments at column 64. Of course it's acceptable to go over.
 
 # Changelog
 
