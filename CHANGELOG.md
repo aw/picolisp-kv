@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.17.0 (2020-08-20)
+
+  ### Bug fixes
+
+  * Catch all IO errors when saving the database to disk
+
+  ### Misc changes
+
+  * Simplified the database save process (persistence)
+  * Foreground database saving has been removed, it will _always_ happen in the background
+  * The AOF is opened/closed for every write as opposed to being open forever
+  * The `SAVE` command is now exactly the same as `BGSAVE`
+
 ## 0.16.0 (2020-08-17)
 
   ### New features

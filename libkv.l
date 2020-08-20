@@ -54,7 +54,7 @@
 
     (case (uppc (car Request))
       ["APPEND"     (kv-cmd-append Key Value) ]
-      ["BGSAVE"     (kv-bgsave-db *Aof_desc) ]
+      ["BGSAVE"     (kv-bgsave-db) ]
       ["CLIENT"     (kv-cmd-client Child (cadr Request) ]
       ["CONVERT"    (kv-cmd-convert) ]
       ["DEL"        (kv-cmd-del Key (cdadr Request) ]
@@ -88,7 +88,7 @@
       ["RPOP"       (kv-cmd-rpop Key) ]
       ["RPOPLPUSH"  (kv-cmd-rpoplpush Key Value) ]
       ["RPUSH"      (kv-cmd-rpush Key (cdadr Request) ]
-      ["SAVE"       (kv-save-db) ]
+      ["SAVE"       (kv-bgsave-db) ] # same as BGSAVE
       ["SET"        (kv-cmd-set Key Value) ]
       ["STRLEN"     (kv-cmd-strlen Key) ]
       [T            "Error: Unknown command" ] ]
@@ -386,37 +386,6 @@
 # PERSISTENCE
 ###
 
-# Rewrite the AOF with new entries if they were added
-[de kv-rewrite-aof ()
-  (ctl *KV_aof_lock
-    (one *KV/%stats%/aof_rewrite_in_progress)
-    (when (info *KV_aof_tmp)
-          (kv-output "====== Rewriting AOF ======")
-          (out (pack "+" *KV_aof_tmp) (in *KV_aof (echo)))  # Append the current AOF into the temporary AOF
-          (out *KV_aof (in *KV_aof_tmp (echo)))             # Copy the temporary AOF into the current AOF
-          (call 'rm "-f" *KV_aof_tmp)
-          (kv-output "====== AOF saved ======") )
-    (zero *KV/%stats%/aof_rewrite_in_progress) ]
-
-[de kv-remove-aof (Bg)
-  (unless Bg (out *KV_aof (rewind)))
-  (call 'rm "-f" *KV_aof_tmp) ]
-
-# Write the new DB to disk
-[de kv-write-db ()
-  (kv-stat "rdb_last_cow_size" (car (info *KV_db_tmp)))
-  (and
-    (if (info *KV_db)
-        (call 'cp *KV_db (pack *KV_db ".old"))
-        T )
-    (or (kv-output "====== Writing DB ======") T)
-    (call 'mv *KV_db_tmp *KV_db) )
-    (or (kv-output "====== DB saved ======") T) ]
-
-# Write data to the DB, then write the AOF (truncate or wipe)
-[de kv-write-data (Bg)
-  (and (info *KV_db_tmp) (kv-write-db) (kv-remove-aof Bg) ]
-
 # Write the data in binary PLIO (pr) or plaintext (println) format
 [de kv-save-data (Key)
   (let Result (kv-value Key)
@@ -430,29 +399,37 @@
   (out *KV_db_tmp
     (mapcar kv-save-data (kv-cmd-get "%stats%/keys") ]
 
-# Perform some maintenance tasks when save ends
-[de kv-save-cleanup ()
-  (call 'rm "-f" *KV_aof_lock *KV_db_lock) ]
-
 # Obtain a UNIX timestamp
 [de kv-timestamp (Ns)
   (in (list 'date (if Ns "+%s.%N" "+%s")) (line T) ]
 
+# Rewrite the AOF with new entries if they were added
+[de kv-rewrite-aof ()
+  (ctl *KV_aof_lock
+    (when *Msg (out 2 (prinl "^J======^JERROR: " *Msg "^J======^J"))) # Print error message to STDERR
+    (when (info *KV_aof_tmp)
+          (kv-output "====== Rewriting AOF ======")
+          (out (pack "+" *KV_aof_tmp) (in *KV_aof (echo)))     # Append the current AOF into the temporary AOF
+          (out *KV_aof (in *KV_aof_tmp (echo)))                # Copy the temporary AOF into the current AOF
+          (call 'rm "-f" *KV_aof_tmp)
+          (kv-output "====== AOF saved ======") ) )
+
+  (call 'rm "-f" *KV_aof_lock *KV_db_lock) ]                   # Remove temporary AOF and DB locks
+
 # Save the entire DB keyspace to a file
-[de kv-save-db (Bg)
-  (if (kv-locked?)
-      (kv-rewrite-aof)                                         # restore the AOF if the DB is locked
-      (out *KV_db_lock (prinl *Pid))
-      (kv-output "[dbwriter]=" *Pid " Saving the DB to " *KV_db)
-      (kv-stat "rdb_last_save_time" (kv-timestamp))
+[de kv-save-db ()
+  (kv-output "[dbwriter]=" *Pid " Saving the DB to " *KV_db)
 
-      (finally
-        (kv-save-cleanup)
-        (kv-save-db-keys)
-        (kv-write-data Bg)
-        (unless *PPid (bye))
-
-        (kv-stat "rdb_last_bgsave_status" "OK") ]
+  (catch '(NIL)
+    (finally
+      (kv-rewrite-aof)
+      (kv-output "====== Writing DB ======")
+      (kv-save-db-keys)
+      (call 'cp *KV_db (pack *KV_db ".old"))                       # Backup the DB file
+      (call 'mv *KV_db_tmp *KV_db)                                 # Write the new DB to disk
+      (call 'rm "-f" *KV_aof_tmp)                                  # Remove the temporary AOF file
+      (kv-output "====== DB saved ======")
+      (bye) ]
 
 # Check if the DB is locked for writing, and return the error message
 [de kv-locked? ()
@@ -461,13 +438,14 @@
         (kv-stat "rdb_last_bgsave_status" "Error: DB is locked for writing") ]
 
 # Save the entire DB keyspace to a file in the background (fork)
-[de kv-bgsave-db (Aof)
+[de kv-bgsave-db ()
   (if (kv-locked?)
       @
+      (out *KV_db_lock (prinl *Pid))
       (kv-stat "rdb_last_save_time" (kv-timestamp))
       (call 'cp *KV_aof *KV_aof_tmp)                           # make a copy of the AOF before we dump the DB to disk
-      (out Aof (rewind))                                       # wipe the contents of the AOF
-      (unless (fork) (kv-save-db T) (bye))
+      (out *KV_aof (rewind))                                   # wipe the contents of the AOF
+      (unless (fork) (kv-save-db) (bye)) )
       (kv-stat "rdb_last_bgsave_status" "Background saving started") ]
 
 # Restore the in-memory database from entries stored in the DB file
@@ -491,6 +469,7 @@
   (kv-stat "aof_base_size" (car (info Filename)))
   (kv-stat "loading_aof" 1)
 
+  (out Filename)                                               # ensure the AOF exists
   (in Filename
     (while (read)
       (inc '*ERROR_LINE)
@@ -513,7 +492,7 @@
   (use *ERROR_LINE
     (zero *ERROR_LINE)
     (when (and (info Filename) (gt0 (car @)))
-          (catch '("EOF Overrun" "Mismatched" "List expected" "Bad input")
+          (catch '(NIL)
             (finally
               (kv-read-error Type Filename)
               (if (= "AOF" Type)
@@ -521,10 +500,10 @@
                   (kv-restore-db Filename) ]
 
 # Save a write command to the append-only log file with a timestamp and hash of the data
-[de kv-save-aof (Request Aof) # Aof is a file descriptor
+[de kv-save-aof (Request Aof) # Aof is a file
   (when (member (car Request) *KV_write_commands)
         (ctl *KV_aof_lock                                      # try to obtain an exclusive lock
-          (out Aof (println (list (kv-timestamp T) (kv-hash Request) Request)))
+          (out (pack "+" Aof) (println (list (kv-timestamp T) (kv-hash Request) Request)))
           (kv-stat "aof_last_write_status" (if @ "OK" "FAILED") ]
 
 ###
@@ -592,7 +571,7 @@
 
 # Process the message and send the result to the child over the named pipe
 [de kv-sibling-job (Pid Msg)
-  (when *KV_persist (kv-save-aof Msg *Aof_desc))               # save the request to a log file first
+  (when *KV_persist (kv-save-aof Msg *KV_aof))                 # save the request to a log file first
 
   (let (Result (kv-process Pid Msg)
         Pipe_child (pil "tmp/" *PPid "/pipe_child_" Pid) )
@@ -651,24 +630,22 @@
   (ifn  (>= *Elapsed *KV_persist)
         (abort (- *KV_persist *Elapsed) (kv-listen-sibling))
         (setq *Start (time))                                   # restart the timer because it expired
-        (kv-bgsave-db *Aof_desc) ]
+        (kv-bgsave-db) ]
 
 # Start the loop which listens for new messages
 [de kv-sibling-loop ()
-  (use (*Aof_desc *Start *Elapsed)
-    (setq *Aof_desc (open *KV_aof))                            # obtain a file descriptor for the AOF
-    (setq *Start (time))                                       # start the clock for the bgsave timer
-    (loop
-      (if *KV_persist
-          (kv-bgsave-timer)
-          (kv-listen-sibling) ]
+  (if *KV_persist
+      (use (*Start *Elapsed)
+        (setq *Start (time))                                   # start the clock for the bgsave timer
+        (loop (kv-bgsave-timer)) )
+      (loop (kv-listen-sibling) ]
 
-# Restore the DB and AOF, then save it in the foreground (blocking)
+# Restore the DB and AOF
 [de kv-sibling-restore ()
   (when *KV_persist
         (kv-restore "DB" *KV_db)
         (kv-restore "AOF" *KV_aof)
-        (kv-save-db) ]
+        (kv-bgsave-db) ]                                       # perform an initial DB save on start
 
 # Remove a locked process with SIGKILL
 [de kv-remove-locked ()

@@ -13,18 +13,17 @@
 
 # run key/value store tests with persistence
 (chdir (pack (car (file)) "test/")
+  (call 'rm "-f" *KV_db (pack *KV_db ".old") *KV_aof *KV_aof_lock) # cleanup first
   (unless (fork)
-    (exec '../server.l "--pass" *KV_pass "--port" *KV_port "--persist" *KV_persist) )
+    (kv-listen) )
   (mapcar load (filter '((N) (sub? "test_kv" N)) (dir "."))) )
 
-(kill (car (kids))) # ensure the server is stopped
-
+(mapcar kill (kids))
 (wait 1000)
 
 (setq *KV_port (rand 40001 49999))
 
 # run the client/server tests without persistence
-#{ # NOTE: disabled integration tests
 (chdir (pack (car (file)) "test/")
   (call 'rm "-f" *KV_db (pack *KV_db ".old") *KV_aof *KV_aof_lock) # cleanup first
   (unless (fork)
@@ -32,6 +31,6 @@
   (mapcar load (filter '((N) (sub? "test_cs" N)) (dir "."))) )
 
 (kill (car (kids))) # ensure the server is stopped
-}#
+
 
 (report)

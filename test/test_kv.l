@@ -80,13 +80,11 @@
 
 [de test-commands-bgsave ()
   (kv-cmd-rpush "mylist" '("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
-  (let KV_desc (open *KV_aof)
-    (kv-save-aof '("RPUSH" '("mylist" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) KV_desc)
-    (close KV_desc) )
+  (kv-save-aof '("RPUSH" '("mylist" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10")) *KV_aof)
   (assert-equal "OK" (kv-cmd-get "%stats%/aof_last_write_status") "[BGSAVE] Should be OK for saving a valid AOF entry")
-  (kv-save-db-keys)
-  (kv-write-db)
-  (assert-equal 0 (kv-restore "DB" *KV_db) "[BGSAVE] Should return 0 when restoring the DB")
+  (kv-bgsave-db)
+  (call 'touch *KV_db)
+  (assert-equal 0 (kv-restore-db *KV_db) "[BGSAVE] Should return 0 when restoring the DB")
   (out *KV_db_lock (prinl "12345"))
   (assert-equal "Error: DB is locked for writing" (kv-locked?) "[BGSAVE] Should return an error if the DB is locked")
   (call 'rm "-f" *KV_db_lock)
@@ -94,8 +92,8 @@
   (assert-kind-of 'String (kv-timestamp) "[BGSAVE] Should return a UNIX timestamp")
   (kv-save-db-keys)
   (assert-kind-of 'List (info *KV_db_tmp) "[BGSAVE] Should return a list if a temp DB exists after saving the keys")
-  (assert-t (kv-write-db) "[BGSAVE] Should write the DB to disk")
-  (assert-equal 0 (kv-rewrite-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
+  (assert-equal "Background saving started" (kv-bgsave-db) "[BGSAVE] Should write the DB to disk")
+  (assert-t (kv-rewrite-aof) "[BGSAVE] Should return 0 when writing the AOF to disk")
   ]
 
 [de test-commands-exists ()

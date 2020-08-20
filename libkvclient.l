@@ -15,6 +15,8 @@
   *KV_pass      NIL
   *KV_abort     60                                       # max time (in seconds) to wait for a message
   *KV_uuid      "7672FDB2-4D29-4F10-BA7C-8EAD0E29626E"   # for server handshake, do not change
+  *KV_decrypt   NIL
+  *KV_encrypt   NIL
   *KV_gpgid     "secrets/gpg-id" )                       # key name containing the GPG ID used to encrypt data
 
 (off *KV_poll)
