@@ -469,7 +469,7 @@
   (kv-stat "aof_base_size" (car (info Filename)))
   (kv-stat "loading_aof" 1)
 
-  (out Filename)                                               # ensure the AOF exists
+  (out (pack "+" Filename))                                    # ensure the AOF exists
   (in Filename
     (while (read)
       (inc '*ERROR_LINE)

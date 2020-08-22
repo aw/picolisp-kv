@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.1 (2020-08-22)
+
+  ### Bug fixes
+
+  * Catch all IO errors when saving the database to disk
+
 ## 0.17.0 (2020-08-20)
 
   ### Bug fixes
