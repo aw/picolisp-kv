@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.18.0 (2020-11-10)
+
+  ### New features
+
+  * [documentation] Add the diagrams for _how_ this library works in the `diagrams/` directory
+
+  ### Misc changes
+
+  * Add support for `pil21`
+  * Update github actions to use `picolisp-action` version 2
+  * Update unit test library to use newer version of `picolisp-unit` which is 10x faster
+
 ## 0.17.1 (2020-08-22)
 
   ### Bug fixes

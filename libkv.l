@@ -574,7 +574,7 @@
   (when *KV_persist (kv-save-aof Msg *KV_aof))                 # save the request to a log file first
 
   (let (Result (kv-process Pid Msg)
-        Pipe_child (pil "tmp/" *PPid "/pipe_child_" Pid) )
+        Pipe_child (tmp "../" *PPid "/pipe_child_" Pid) )
 
     (wait 1)
     (kv-output "[msg]    to child: " (sym Result))
@@ -681,7 +681,7 @@
 [de kv-mkfifo (Type)
   (let Filename
     (if (= Type "child")
-        (setq *Pipe_child (pil "tmp/" *PPid "/pipe_child_" *Pid))
+        (setq *Pipe_child (tmp "../" *PPid "/pipe_child_" *Pid))
         (setq *Pipe_sibling (tmp "pipe_sibling")) )
 
     (unless (info Filename) (call "mkfifo" Filename) ]

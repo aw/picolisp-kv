@@ -22,7 +22,7 @@ The included `server.l` and `client.l` can be used to send and receive _"Redis-l
 
 # Requirements
 
-  * PicoLisp 32-bit/64-bit `v17.12` to `v20.6.29`
+  * PicoLisp 32-bit/64-bit `v17.12` to `v20.6.29`, or `pil21`
   * Linux or UNIX-like OS (with support for named pipes)
 
 # Getting Started
