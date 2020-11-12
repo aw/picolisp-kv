@@ -63,6 +63,7 @@
       ["GETSET"     (kv-cmd-getset Key Value) ]
       ["HDEL"       (kv-cmd-hdel Key (cdadr Request) ]
       ["HEXISTS"    (kv-cmd-hexists Key Value) ]
+      ["HFIND"      (kv-cmd-hfind Key Value) ]
       ["HGET"       (kv-cmd-hget Key Value) ]
       ["HGETALL"    (kv-cmd-hgetall Key) ]
       ["HKEYS"      (kv-cmd-hkeys Key) ]
@@ -154,6 +155,10 @@
   (if (assoc Field (kv-value Key))
       1
       0 ]
+
+[de kv-cmd-hfind (Key Substring)
+  (when (and Substring (kv-check-key Key 'lst))
+        (extract '((N) (car (sub? Substring (car N)))) (kv-value Key)) ]
 
 [de kv-cmd-hget (Key Field)
   (cdr (assoc Field (kv-value Key) ]

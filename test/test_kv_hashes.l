@@ -23,6 +23,17 @@
   (assert-equal 1 (kv-cmd-hexists "hashexistskey" "one") "[HEXISTS] Should return 1 if the key and field exists")
   ]
 
+[de test-commands-hfind ()
+  (kv-cmd-hset "hfindkey" '("one" "1" "two" "2"))
+  (kv-cmd-set "hashfindkeyz" "string")
+  (assert-nil (kv-cmd-hfind) "[HFIND] Should return NIL if no key is provided")
+  (assert-nil (kv-cmd-hfind "hfindkey") "[HFIND] Should return NIL if no substring is provided")
+  (assert-nil (kv-cmd-hget "hashfindkeyz") "[HFIND] Should return NIL if key is not a list")
+  (assert-nil (kv-cmd-hfind "hashkeyzmissing") "[HFIND] Should return NIL if the key doesn't exist")
+  (assert-nil (kv-cmd-hfind "hfindkey" "three") "[HFIND] Should return 0 if the substring doesn't exist")
+  (assert-equal '("one") (kv-cmd-hfind "hfindkey" "one") "[HFIND] Should return 'one' if the key and substring exists")
+  ]
+
 [de test-commands-hget ()
   (kv-cmd-hset "hashgetkey" '("one" "1" "two" "2"))
   (kv-cmd-set "hashkeyz" "string")
@@ -103,6 +114,7 @@
 [execute
   '(test-commands-hdel)
   '(test-commands-hexists)
+  '(test-commands-hfind)
   '(test-commands-hget)
   '(test-commands-hgetall)
   '(test-commands-hkeys)

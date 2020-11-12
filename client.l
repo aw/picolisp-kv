@@ -36,6 +36,7 @@
                ("GETSET key value"                  "^I^ISet the string value of a key and return its old value")
                ("HDEL key field [field ..]"         "^I^IDelete one or more hash fields")
                ("HEXISTS key field"                 "^I^IDetermine if a hash field exists")
+               ("HFIND key substring"               "^I^IFind a substring in a hash key's field")
                ("HGET key field"                    "^I^IGet the value of a hash field")
                ("HGETALL key"                       "^I^IGet all the fields and values in a hash")
                ("HKEYS key"                         "^I^IGet all the fields in a hash")

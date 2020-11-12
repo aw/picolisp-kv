@@ -154,6 +154,7 @@ COMMAND LIST              Commands are case-insensitive and don't always require
   GETSET key value          		Set the string value of a key and return its old value
   HDEL key field [field ..]    		Delete one or more hash fields
   HEXISTS key field         		Determine if a hash field exists
+  HFIND key substring           Find a substring in a hash key's field
   HGET key field            		Get the value of a hash field
   HGETALL key               		Get all the fields and values in a hash
   HKEYS key                 		Get all the fields in a hash

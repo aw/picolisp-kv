@@ -17,6 +17,7 @@ Most `COMMANDS` take the exact same arguments, and return the same type of value
 | [GETSET](#getset) key value | Set the string value of a key and return its old value |
 | [HDEL](#hdel) key field [field ..] | Delete one or more hash fields |
 | [HEXISTS](#hexists) key field | Determine if a hash field exists |
+| [HFIND](#hfind) key substring | Find a substring in a hash key's field |
 | [HGET](#hget) key field | Get the value of a hash field |
 | [HGETALL](#hgetall) key | Get all the fields and values in a hash |
 | [HKEYS](#hkeys) key | Get all the fields in a hash |

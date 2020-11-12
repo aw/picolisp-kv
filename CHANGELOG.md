@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.1 (2020-11-12)
+
+  ### New features
+
+  * [commands] Add the following Hash COMMAND: `HFIND`
+
 ## 0.18.0 (2020-11-10)
 
   ### New features
