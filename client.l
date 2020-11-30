@@ -77,7 +77,7 @@
           (--decrypt  (on *KV_decrypt))                        # decrypt all values using GPG
           (--encrypt  (on *KV_encrypt))                        # encrypt all values using GPG
           (--host     (setq *KV_host (opt)))                   # default 'localhost'
-          (--port     (setq *KV_port (opt)))                   # default '6378'
+          (--port     (setq *KV_port (format (opt))))          # default '6378'
           (--name     (setq *KV_clientid (opt)))               # default '<randomly generated>'
           (--poll     (setq *KV_poll (opt)))                   # enable polling of command
           (--pass     (setq *KV_pass (opt)))                   # required password

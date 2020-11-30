@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.2 (2020-11-30)
+
+  ### Bug fixes
+
+  * Ensure --port value is handled as a number not a string by client.l
+
 ## 0.18.1 (2020-11-12)
 
   ### New features
