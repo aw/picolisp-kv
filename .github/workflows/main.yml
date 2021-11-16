@@ -11,8 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        arch: ['src', 'src64']
-        version: ['17.12', '18.6', '18.12', '19.6', '19.12', 'pil21', 'latest']
+        arch: ['src64']
+        version: ['pil21', 'latest']
 
     steps:
       - uses: actions/checkout@v1
