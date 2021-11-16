@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         arch: ['src64']
-        version: ['pil21', 'latest']
+        version: ['pil21']
 
     steps:
       - uses: actions/checkout@v1
